@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "navigation-bar": "/components/navigation-bar/navigation-bar",
+    "record-sheet": "/components/record-sheet/record-sheet"
+  },
+  "navigationStyle": "custom"
+}

@@ -1,0 +1,13 @@
+<!-- custom-tab-bar/index.wxml -->
+<view class="bar" hidden="{{hidden}}">
+  <view class="bar-inner">
+    <view wx:for="{{tabs}}" wx:key="key" class="tab {{selected === index ? 'on' : ''}}" data-index="{{index}}" bindtap="tapTab">
+      <image class="ti" src="{{selected === index ? item.iconGreen : item.iconGray}}" mode="aspectFit" />
+      <text class="tt">{{item.text}}</text>
+    </view>
+    <!-- 中间「记一笔」：悬浮于 tab 栏顶缝（原型同款半嵌入） -->
+    <view class="fab" bindtap="tapAdd">
+      <text class="fab-plus">＋</text>
+    </view>
+  </view>
+</view>

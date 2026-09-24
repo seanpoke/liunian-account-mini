@@ -1,0 +1,9 @@
+# 微信开发者工具私有配置（含本地偏好，官方建议忽略）
+project.private.config.json
+
+# CloudBase 本地配置
+.cloudbase/
+
+# 依赖与构建产物（如后续引入）
+node_modules/
+dist/

@@ -1,0 +1,136 @@
+/* app.wxss —— 全局设计变量与通用样式 */
+page {
+  --brand: #07C160;
+  --brand-2: #0aa85a;
+  --brand-soft: #e8f8ee;
+  --bg: #f2f3f5;
+  --card: #ffffff;
+  --text: #1a1a1a;
+  --text-2: #646a73;
+  --text-3: #9a9a9a;
+  --line: #ececec;
+  --income: #07C160;
+  --expense: #fa5151;
+  --warn: #ffb020;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", Helvetica, sans-serif;
+}
+
+view, text { box-sizing: border-box; }
+
+/* 页面骨架：自定义导航 + 可滚动内容 + 底部安全区 */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.page-body {
+  flex: 1;
+  /* 注意：不要加 overflow-y:auto / -webkit-overflow-scrolling —— 页面本身原生整页滚动，
+     给内容套滚动容器语义会导致 canvas 2d 同层渲染退化成原生浮层，盖住自定义 tabBar */
+}
+.pad { padding: 24rpx; }
+.pad-lg { padding: 32rpx; }
+/* tab 页底部占位：tabBar 112rpx + 悬浮加号上半截 + 安全区，防止内容钻到栏后与加号重叠 */
+.tab-clear { height: calc(190rpx + env(safe-area-inset-bottom)); }
+
+/* 卡片 */
+.card {
+  background: var(--card);
+  border-radius: 24rpx;
+  padding: 28rpx;
+  box-shadow: 0 6rpx 24rpx rgba(31, 35, 41, 0.04);
+}
+.card + .card { margin-top: 20rpx; }
+
+/* 通用按钮 */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 92rpx;
+  border-radius: 20rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  border: none;
+  line-height: 1;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: #fff;
+}
+.btn-ghost {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.btn-line {
+  background: #fff;
+  color: var(--text);
+  border: 2rpx solid var(--line);
+}
+.btn-danger {
+  background: #fff;
+  color: var(--expense);
+  border: 2rpx solid #ffd9e0;
+}
+.btn[disabled] { opacity: 0.5; }
+.btn-block { width: 100%; }
+.btn-sm { height: 64rpx; font-size: 26rpx; border-radius: 14rpx; padding: 0 24rpx; }
+
+/* 头像（CSS 生成，无需图片资源） */
+.avatar {
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex: none;
+  overflow: hidden;
+}
+.avatar-sm { width: 56rpx; height: 56rpx; font-size: 24rpx; }
+.avatar-md { width: 80rpx; height: 80rpx; font-size: 30rpx; }
+.avatar-lg { width: 120rpx; height: 120rpx; font-size: 44rpx; }
+
+/* 文本/标签 */
+.muted { color: var(--text-2); }
+.muted-3 { color: var(--text-3); }
+.income { color: var(--income); }
+.expense { color: var(--expense); }
+.bold { font-weight: 600; }
+.center { text-align: center; }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 40rpx;
+  padding: 0 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  line-height: 1;
+}
+.tag-owner { background: #fff3e0; color: #d97706; }
+.tag-member { background: var(--brand-soft); color: var(--brand); }
+.tag-pending { background: #fff0f0; color: var(--expense); }
+
+.row { display: flex; align-items: center; }
+.between { justify-content: space-between; }
+.gap8 { gap: 8rpx; }
+.gap16 { gap: 16rpx; }
+.grow { flex: 1; }
+.divider { height: 2rpx; background: var(--line); }
+
+.section-title {
+  font-size: 26rpx;
+  color: var(--text-3);
+  margin: 28rpx 4rpx 12rpx;
+}
+
+.empty {
+  padding: 80rpx 24rpx;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 28rpx;
+}

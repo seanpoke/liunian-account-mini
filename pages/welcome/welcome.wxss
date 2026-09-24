@@ -1,0 +1,19 @@
+/* pages/welcome/welcome.wxss —— 对照 doc/家庭记账小程序原型.html 加入成功页 */
+.welcome-body { text-align: center; padding: 0 60rpx; }
+.w-icon {
+  width: 152rpx; height: 152rpx; border-radius: 50%; background: #E8F8EE;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 44rpx;
+}
+.w-ic { width: 76rpx; height: 76rpx; }
+.w-title { font-size: 38rpx; font-weight: 700; color: #1a1a1a; letter-spacing: .3rpx; }
+.w-sub { font-size: 27rpx; color: #9a9a9a; margin-top: 20rpx; line-height: 1.7; }
+.avatars { display: flex; justify-content: center; margin-top: 48rpx; }
+.sa {
+  width: 68rpx; height: 68rpx; border-radius: 50%; border: 4rpx solid #fff;
+  margin-left: -20rpx; display: flex; align-items: center; justify-content: center;
+  font-size: 26rpx; font-weight: 700; color: #fff; flex: none;
+}
+.sa:first-child { margin-left: 0; }
+.w-note { font-size: 25rpx; color: #a8a8a8; margin-top: 40rpx; line-height: 1.65; }
+.w-enter { margin-top: 44rpx; }
+.w-agree { font-size: 23rpx; color: #c0c0c0; margin-top: 32rpx; line-height: 1.6; }

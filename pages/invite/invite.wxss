@@ -1,0 +1,64 @@
+/* pages/invite/invite.wxss —— 对照 doc/家庭记账小程序原型.html 邀请确认页（px × 2 = rpx） */
+.invite-hero {
+  height: 376rpx;
+  background: linear-gradient(135deg, #07C160, #0aa85a);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff;
+}
+.fav {
+  width: 132rpx; height: 132rpx; border-radius: 50%;
+  background: rgba(255, 255, 255, .22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56rpx; font-weight: 700; color: #fff; margin-bottom: 28rpx;
+}
+.fn { font-size: 40rpx; font-weight: 700; letter-spacing: 1rpx; }
+.fc { font-size: 26rpx; opacity: .92; margin-top: 14rpx; }
+
+.invite-body { padding: 40rpx 36rpx; }
+.invite-card {
+  background: #fff; border-radius: 32rpx; box-shadow: 0 12rpx 40rpx rgba(17, 24, 39, .06);
+  padding: 36rpx; margin-bottom: 28rpx;
+}
+.invite-inviter { display: flex; align-items: center; gap: 26rpx; }
+.av {
+  width: 92rpx; height: 92rpx; border-radius: 50%; color: #fff;
+  font-size: 36rpx; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none;
+}
+.inv-info { flex: 1; min-width: 0; }
+.nm { font-size: 32rpx; font-weight: 600; }
+.desc { font-size: 26rpx; color: var(--text-3); margin-top: 6rpx; }
+.tag { font-size: 22rpx; color: #999; background: #F2F3F5; padding: 4rpx 16rpx; border-radius: 12rpx; flex: none; }
+
+.av-stack { display: flex; align-items: center; margin: 36rpx 0 0; }
+.sa {
+  width: 68rpx; height: 68rpx; border-radius: 50%; border: 4rpx solid #fff;
+  margin-left: -20rpx; display: flex; align-items: center; justify-content: center;
+  font-size: 26rpx; font-weight: 700; color: #fff; flex: none;
+}
+.sa:first-child { margin-left: 0; }
+.members-line { font-size: 26rpx; color: var(--text-3); margin-top: 24rpx; }
+.members-line .b { color: #333; }
+
+.btn-green {
+  width: 100%; background: var(--brand); color: #fff; border: none;
+  border-radius: 28rpx; padding: 30rpx; font-size: 34rpx; font-weight: 600; line-height: 1; margin-top: 36rpx;
+}
+.btn-green:active { opacity: .9; }
+.btn-ghost2 {
+  width: 100%; background: #F2F3F5; color: #555; border: none;
+  border-radius: 28rpx; padding: 30rpx; font-size: 34rpx; font-weight: 600; line-height: 1; margin-top: 20rpx;
+}
+.btn-ghost2:active { background: #EFEFEF; }
+
+.invite-agree { text-align: center; font-size: 22rpx; color: #c0c0c0; margin-top: 32rpx; line-height: 1.6; }
+.demo-tip { text-align: center; color: var(--text-3); margin-top: 28rpx; font-size: 26rpx; }
+
+.pend-state { text-align: center; padding-top: 12rpx; }
+.pend-icon {
+  width: 128rpx; height: 128rpx; border-radius: 50%; background: #E8F8EE;
+  display: flex; align-items: center; justify-content: center; margin: 36rpx auto 28rpx;
+}
+.pend-ic { width: 64rpx; height: 64rpx; }
+.tip { font-size: 30rpx; font-weight: 600; }
+.sub { font-size: 26rpx; color: var(--text-3); margin-top: 20rpx; line-height: 1.65; }
+
+.btn-green::after, .btn-ghost2::after { border: none; }

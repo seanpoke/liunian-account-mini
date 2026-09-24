@@ -1,0 +1,83 @@
+<!-- pages/stats/stats.wxml -->
+<view class="page">
+  <navigation-bar title="统计" back="{{false}}" color="black" background="#f5f6fa"></navigation-bar>
+  <view class="page-body pad">
+
+    <!-- 时段切换 -->
+    <view class="seg">
+      <view class="seg-opt {{period === 'month' ? 'on' : ''}}" data-p="month" bindtap="setPeriod">按月</view>
+      <view class="seg-opt {{period === 'year' ? 'on' : ''}}" data-p="year" bindtap="setPeriod">按年</view>
+      <view class="seg-opt {{period === 'custom' ? 'on' : ''}}" data-p="custom" bindtap="setPeriod">自定义</view>
+    </view>
+
+    <!-- 时段选择 -->
+    <view class="period-pick" wx:if="{{period === 'month'}}">
+      <picker mode="date" fields="month" value="{{month}}" bindchange="onMonth">
+        <view class="pick-box">{{monthText}} ›</view>
+      </picker>
+    </view>
+    <view class="period-pick" wx:elif="{{period === 'year'}}">
+      <picker mode="date" fields="year" value="{{year}}" bindchange="onYear">
+        <view class="pick-box">{{year}}年 ›</view>
+      </picker>
+    </view>
+    <view class="period-pick row gap16" wx:else>
+      <picker mode="date" value="{{start}}" bindchange="onStart"><view class="pick-box">{{start}}</view></picker>
+      <text class="muted-3">至</text>
+      <picker mode="date" value="{{end}}" bindchange="onEnd"><view class="pick-box">{{end}}</view></picker>
+    </view>
+
+    <!-- 三数字卡（对照原型 sum-row） -->
+    <view class="sum-row" wx:if="{{hasData}}">
+      <view class="s"><view class="l">收入</view><view class="v income">{{incomeText}}</view></view>
+      <view class="s"><view class="l">支出</view><view class="v expense">{{expenseText}}</view></view>
+      <view class="s"><view class="l">结余</view><view class="v">{{balanceText}}</view></view>
+    </view>
+
+    <!-- 成员筛选（可多选，对照原型「按成员筛选统计」） -->
+    <view class="chip-label">按成员筛选统计</view>
+    <scroll-view scroll-x class="filter-row" wx:if="{{memberChips.length}}">
+      <view class="chip {{filterMembers.length === 0 ? 'on' : ''}}" bindtap="onFilterAll">全部成员</view>
+      <view wx:for="{{memberChips}}" wx:key="openid" class="chip {{item.on ? 'on' : ''}}" data-id="{{item.openid}}" bindtap="onFilter">{{item.nickname}}</view>
+    </scroll-view>
+
+    <view wx:if="{{!hasData}}" class="empty">该时段暂无账目</view>
+
+    <!-- 分类占比（对照原型：支出分类占比）。canvas 仅作绘制画布，导出图片后移除，避免原生层浮到 tabBar 上 -->
+    <view class="section-title">支出分类占比（{{periodLabel}}）</view>
+    <view class="card row" wx:if="{{hasData}}">
+      <canvas wx:if="{{ringCanvasOn}}" type="2d" id="ringCanvas" class="chart-ring"></canvas>
+      <image wx:elif="{{ringImg}}" class="chart-ring" src="{{ringImg}}" mode="scaleToFill"></image>
+      <view class="grow ring-legend">
+        <view wx:for="{{ringLegend}}" wx:key="name" class="legend-row">
+          <view class="dot" style="background:{{item.color}};"></view>
+          <text class="grow">{{item.name}}</text>
+          <text class="muted-3 fs24">{{item.percent}}%</text>
+          <text class="bold" style="margin-left:12rpx;">{{item.amountText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 收支趋势（对照原型：收支趋势） -->
+    <view class="section-title">收支趋势（{{periodLabel}}）</view>
+    <view class="card" wx:if="{{hasData}}">
+      <view class="trend-legend" wx:if="{{trendLegend.length > 1}}">
+        <view class="tl-item" wx:for="{{trendLegend}}" wx:key="name">
+          <view class="tl-line" style="background:{{item.color}};"></view>
+          <text>{{item.name}}</text>
+        </view>
+      </view>
+      <canvas wx:if="{{trendCanvasOn}}" type="2d" id="trendCanvas" class="chart-lg"></canvas>
+      <image wx:elif="{{trendImg}}" class="chart-lg" src="{{trendImg}}" mode="scaleToFill"></image>
+    </view>
+
+    <!-- 成员支出（对照原型：成员支出（元）） -->
+    <view class="section-title">成员支出（{{periodLabel}}）</view>
+    <view class="card" wx:if="{{hasData}}">
+      <canvas wx:if="{{barCanvasOn}}" type="2d" id="barCanvas" class="chart-lg"></canvas>
+      <image wx:elif="{{barImg}}" class="chart-lg" src="{{barImg}}" mode="scaleToFill"></image>
+    </view>
+
+    <view class="tab-clear"></view>
+  </view>
+</view>

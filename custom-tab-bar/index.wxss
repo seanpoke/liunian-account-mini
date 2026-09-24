@@ -1,0 +1,67 @@
+/* custom-tab-bar/index.wxss */
+/* 外层只做底色+安全区撑高；内容固定高度行内居中，避免安全区挤压导致 tab 不对齐 */
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff;
+  border-top: 1rpx solid #ececec;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 1000;
+}
+.bar-inner {
+  position: relative;
+  height: 112rpx;
+  display: flex;
+  align-items: center;
+}
+.tab {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ti {
+  width: 46rpx;
+  height: 46rpx;
+  display: block;
+}
+.tt {
+  font-size: 22rpx;
+  color: #9a9a9a;
+  line-height: 1;
+  margin-top: 6rpx;
+}
+.tab.on .tt {
+  color: #07C160;
+  font-weight: 600;
+}
+/* 加号圆钮：中心正骑在栏的上边缘（112rpx 栏，104rpx 钮，bottom = 112 - 52 = 60rpx） */
+.fab {
+  position: absolute;
+  left: 50%;
+  bottom: 60rpx;
+  transform: translateX(-50%);
+  width: 116rpx;
+  height: 116rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #07C160, #0aa85a);
+  border: 8rpx solid #ffffff;
+  box-shadow: 0 10rpx 26rpx rgba(7, 193, 96, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.fab:active {
+  transform: translateX(-50%) scale(0.94);
+}
+.fab-plus {
+  color: #ffffff;
+  font-size: 60rpx;
+  line-height: 1;
+  margin-top: -8rpx;
+}

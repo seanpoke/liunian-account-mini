@@ -1,0 +1,8 @@
+/* pages/privacy/privacy.wxss */
+.policy { line-height: 1.8; }
+.p-h { font-size: 38rpx; font-weight: 700; text-align: center; }
+.p-sub { text-align: center; color: var(--text-3); font-size: 24rpx; margin: 8rpx 0 24rpx; }
+.p-sec { margin-bottom: 28rpx; }
+.p-t { display: block; font-weight: 600; font-size: 30rpx; margin-bottom: 10rpx; }
+.p-c { display: block; font-size: 28rpx; color: var(--text-2); }
+.policy-foot { position: fixed; left: 0; right: 0; bottom: 0; padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom)); background: #fff; border-top: 2rpx solid var(--line); }

@@ -1,0 +1,77 @@
+<!-- pages/invite/confirm.wxml —— 严格对照 doc/邀请确认页落地动效.html 五个阶段 -->
+<view class="page">
+  <navigation-bar title="加入家庭" back="{{true}}" color="black" background="#ffffff"></navigation-bar>
+  <view class="page-body">
+
+    <!-- 阶段①：校验中 loader 全屏覆盖 -->
+    <view wx:if="{{mask}}" class="loader-mask">
+      <view class="loader">
+        <view class="spinner"></view>
+        <view class="l1">正在验证邀请…</view>
+        <view class="l2">校验 token 有效性 / 是否已加入</view>
+      </view>
+    </view>
+
+    <!-- 邀请已失效 -->
+    <view wx:elif="{{invalid}}" class="card center" style="padding:60rpx 32rpx;">
+      <view style="font-size:80rpx;">😶</view>
+      <view class="bold" style="margin-top:16rpx;">邀请已失效</view>
+      <view class="muted-3" style="margin-top:8rpx;">请让家人重新发送邀请</view>
+    </view>
+
+    <!-- 已是成员 -->
+    <view wx:elif="{{alreadyMember}}" class="card center" style="padding:60rpx 32rpx;">
+      <view style="font-size:80rpx;">🏠</view>
+      <view class="bold" style="margin-top:16rpx;">你已在家庭中</view>
+      <view class="btn-green" style="margin-top:32rpx;" bindtap="enterHome">进入账本</view>
+    </view>
+
+    <!-- 阶段② / ③：邀请确认页 / 等待创建者确认 -->
+    <block wx:else>
+      <view class="invite-hero">
+        <view class="fav">{{familyInitial}}</view>
+        <view class="fn">{{familyName}}</view>
+        <view class="fc">{{applied ? '等待创建者确认' : inviterNickname + ' 邀请你加入'}}</view>
+      </view>
+
+      <view class="invite-body">
+        <!-- 阶段②：确认页 -->
+        <block wx:if="{{!applied}}">
+          <view class="invite-card">
+            <view class="invite-inviter">
+              <view class="av" style="background:{{inviterBg}};">{{inviterInitial}}</view>
+              <view class="inv-info">
+                <view class="nm">{{inviterNickname}}</view>
+                <view class="desc">邀请你加入家庭账本</view>
+              </view>
+              <view class="tag">创建者</view>
+            </view>
+            <view class="av-stack">
+              <view wx:for="{{members}}" wx:key="openid" class="sa" style="background:{{item.bg}};">{{item.initial}}</view>
+            </view>
+            <view class="members-line">已有 <text class="b">{{memberCount}}</text> 位成员一起记账</view>
+          </view>
+
+          <view class="btn-green {{loading ? 'disabled' : ''}}" bindtap="submitApply">
+            <text wx:if="{{!loading}}">提交加入申请</text>
+            <view wx:else class="btn-spinner"></view>
+          </view>
+          <view class="btn-ghost2" bindtap="backHome">暂不加入</view>
+          <view class="invite-agree">提交申请即表示同意《家庭账本隐私协议》</view>
+        </block>
+
+        <!-- 阶段③：等待创建者确认 -->
+        <block wx:else>
+          <view class="pend-state">
+            <view class="pend-icon"><image class="pend-ic" src="{{clockIcon}}" mode="aspectFit" /></view>
+            <view class="pend-title">申请已提交，</view>
+            <view class="pend-title bold">等待创建者「{{inviterNickname}}」确认。</view>
+            <view class="pend-sub">确认结果将通过微信通知你，通常几分钟内处理。</view>
+            <view class="pend-sub">确认后即可一起记账。</view>
+            <view class="btn-ghost2" style="margin-top:36rpx;" bindtap="backHome">返回</view>
+          </view>
+        </block>
+      </view>
+    </block>
+  </view>
+</view>

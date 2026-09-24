@@ -1,0 +1,35 @@
+<!-- pages/about/about.wxml -->
+<view class="page">
+  <navigation-bar title="关于" back="{{true}}" color="black" background="#f5f6fa"></navigation-bar>
+  <view class="page-body pad">
+
+    <view class="about-hero">
+      <view class="logo">账</view>
+      <view class="name">流年小账</view>
+      <view class="ver">家庭记账小程序 · v1.0.0</view>
+    </view>
+
+    <view class="card">
+      <view class="intro">流年小账是一款面向家庭的轻量记账工具，支持多人协作记账、收支统计与趋势分析，让每一笔家庭开销都清晰可见。</view>
+    </view>
+
+    <view class="card menu">
+      <view class="row between item" bindtap="goPrivacy">
+        <text class="muted">隐私政策</text>
+        <text class="chev">›</text>
+      </view>
+      <view class="divider"></view>
+      <view class="row between item">
+        <text class="muted">版本号</text>
+        <text class="muted-3">1.0.0</text>
+      </view>
+      <view class="divider"></view>
+      <view class="row between item" bindtap="goRate">
+        <text class="muted">去评分 / 反馈</text>
+        <text class="chev">›</text>
+      </view>
+    </view>
+
+    <view class="foot">本应用数据仅用于家庭内部记账演示</view>
+  </view>
+</view>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>邀请 · 申请确认流程动效</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;background:#dfe2e6;display:flex;gap:34px;justify-content:center;align-items:flex-start;flex-wrap:wrap;padding:30px;color:#1a1a1a;}
+  .phone{width:360px;height:720px;background:#ededed;border-radius:42px;border:10px solid #1c1c1e;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.28);flex:none;}
+  .statusbar{height:38px;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-size:12px;font-weight:600;position:relative;z-index:25;}
+  .stage{position:absolute;top:38px;left:0;right:0;bottom:0;opacity:0;transform:translateX(26px);transition:opacity .45s ease, transform .45s ease;pointer-events:none;}
+  .stage.on{opacity:1;transform:none;pointer-events:auto;}
+
+  .wx-nav{height:46px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;border-bottom:1px solid #d8d8d8;position:relative;}
+  .wx-nav .back{position:absolute;left:14px;font-size:24px;}
+  .chat{padding:14px 12px;}
+  .sys{text-align:center;font-size:11px;color:#9a9a9a;margin-bottom:14px;}
+  .msg{display:flex;gap:10px;margin-bottom:14px;align-items:flex-start;}
+  .msg .av{width:38px;height:38px;border-radius:8px;background:linear-gradient(135deg,#07C160,#0aa85a);display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff;flex:none;}
+  .bubble{background:#fff;border-radius:8px;padding:10px;max-width:230px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.05);}
+  .bubble::before{content:"";position:absolute;left:-6px;top:14px;border:6px solid transparent;border-right-color:#fff;}
+  .share-card{width:212px;background:#fff;border-radius:10px;padding:10px 11px 7px;display:flex;flex-direction:column;cursor:pointer;transition:transform .18s;}
+  .share-card.press{transform:scale(.95);}
+  .sc-top{display:flex;gap:9px;align-items:flex-start;}
+  .sc-icon{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#07C160,#0aa85a);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex:none;}
+  .sc-txt{flex:1;min-width:0;}
+  .sc-title{font-size:13px;font-weight:600;line-height:1.3;}
+  .sc-desc{font-size:11px;color:#8a8a8a;margin-top:3px;line-height:1.3;}
+  .sc-cover{width:44px;height:44px;border-radius:8px;flex:none;background:linear-gradient(135deg,#0aa85a,#07C160);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;}
+  .sc-foot{border-top:1px solid #f0f0f0;margin-top:9px;padding-top:5px;display:flex;align-items:center;gap:5px;font-size:10px;color:#9a9a9a;}
+  .sc-foot .mini{width:12px;height:12px;border-radius:3px;background:#07C160;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:7px;}
+  .tap-hint{margin-top:10px;font-size:12px;color:#07C160;text-align:center;animation:blink 1.2s infinite;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+  #s1{background:rgba(20,20,20,.55);display:flex;align-items:center;justify-content:center;}
+  .loader{background:rgba(0,0,0,.82);border-radius:14px;padding:26px 34px;color:#fff;text-align:center;}
+  .spinner{width:34px;height:34px;border:3px solid rgba(255,255,255,.25);border-top-color:#07C160;border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loader .l1{font-size:14px;} .loader .l2{font-size:11px;opacity:.6;margin-top:6px;}
+
+  #s2,#s3{background:#fff;display:flex;flex-direction:column;}
+  .inv-hero{height:170px;background:linear-gradient(135deg,#07C160,#0aa85a);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;flex:none;}
+  .inv-hero .fav{width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin-bottom:10px;}
+  .inv-hero .fn{font-size:18px;font-weight:700;} .inv-hero .fc{font-size:12px;opacity:.9;margin-top:5px;}
+  .inv-body{padding:18px 20px;text-align:center;flex:1;overflow-y:auto;}
+  .inv-body .tip{font-size:14px;color:#333;line-height:1.7;}
+  .inv-card{background:#fff;border-radius:14px;box-shadow:0 5px 18px rgba(17,24,39,.07);padding:15px;margin-bottom:12px;text-align:left;}
+  .inv-inviter{display:flex;align-items:center;gap:11px;}
+  .inv-inviter .av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#07C160,#0aa85a);color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;}
+  .inv-inviter .nm{font-size:15px;font-weight:600;flex:1;}
+  .inv-inviter .desc{font-size:12px;color:#999;margin-top:3px;}
+  .inv-inviter .tag{font-size:10px;color:#999;background:#F2F3F5;padding:2px 7px;border-radius:5px;flex:none;}
+  .av-stack{display:flex;align-items:center;margin:14px 0 0;}
+  .av-stack .sa{width:30px;height:30px;border-radius:50%;border:2px solid #fff;margin-left:-9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex:none;}
+  .av-stack .sa:first-child{margin-left:0;}
+  .av-stack .g{background:linear-gradient(135deg,#07C160,#0aa85a);}
+  .av-stack .b{background:linear-gradient(135deg,#4C8DFF,#3a78e0);}
+  .av-stack .p{background:linear-gradient(135deg,#9B6BFF,#8a52f0);}
+  .msg .av,.inv-inviter .av,.av-stack .sa{overflow:hidden;}
+  .msg .av img,.inv-inviter .av img,.av-stack .sa img{width:100%;height:100%;object-fit:cover;display:block;}
+  .members-line{font-size:12px;color:#9a9a9a;margin-top:10px;}
+  .members-line b{color:#333;}
+  .pend-icon{width:58px;height:58px;border-radius:50%;background:#E8F8EE;display:flex;align-items:center;justify-content:center;margin:22px auto 14px;}
+  .pend-icon svg{width:30px;height:30px;}
+  .btn{width:100%;padding:13px;border-radius:13px;border:none;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s;}
+  .btn.green{background:#07C160;color:#fff;} .btn.ghost{background:#F2F3F5;color:#333;margin-top:10px;}
+  .btn.press{transform:scale(.96);} .btn:active{opacity:.85;}
+  .big-icon{font-size:56px;margin:26px 0 12px;}
+
+  #s4{background:#fff;}
+  .home-nav{height:46px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;background:#fff;border-bottom:1px solid #ececec;}
+  .welcome-wrap{padding:70px 30px 20px;text-align:center;}
+  .w-icon{width:76px;height:76px;border-radius:50%;background:#E8F8EE;display:flex;align-items:center;justify-content:center;margin:0 auto 22px;animation:pop .45s cubic-bezier(.2,1.3,.5,1);}
+  .w-icon svg{width:38px;height:38px;}
+  @keyframes pop{0%{transform:scale(.4);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  .w-title{font-size:19px;font-weight:700;color:#1a1a1a;}
+  .w-sub{font-size:13.5px;color:#9a9a9a;margin-top:10px;line-height:1.7;}
+  .w-members{display:flex;justify-content:center;margin-top:20px;}
+  .w-members .sa{width:34px;height:34px;border-radius:50%;border:2px solid #fff;margin-left:-10px;overflow:hidden;flex:none;background:#eee;}
+  .w-members .sa:first-child{margin-left:0;}
+  .w-members .sa img{width:100%;height:100%;object-fit:cover;display:block;}
+  .w-note{font-size:12.5px;color:#a8a8a8;margin-top:20px;line-height:1.65;}
+  .w-btn{width:100%;padding:13px;border-radius:13px;background:#07C160;color:#fff;font-size:15px;font-weight:600;margin-top:26px;}
+
+  .ctrl{position:absolute;bottom:14px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:30;}
+  .dots{display:flex;gap:7px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:#c8c8c8;transition:.3s;}
+  .dot.on{background:#07C160;width:20px;border-radius:5px;}
+  .ctrl button{background:#1c1c1e;color:#fff;border:none;border-radius:20px;padding:9px 22px;font-size:13px;font-weight:600;cursor:pointer;}
+
+  .panel{width:350px;}
+  .panel h3{font-size:15px;margin-bottom:4px;}
+  .panel .sub{font-size:12px;color:#8a8a8a;margin-bottom:18px;line-height:1.6;}
+  .step{background:#fff;border-radius:12px;padding:13px 15px;margin-bottom:9px;border-left:3px solid #e0e0e0;opacity:.5;transition:.3s;}
+  .step.on{opacity:1;border-left-color:#07C160;box-shadow:0 6px 18px rgba(0,0,0,.07);}
+  .step .h{font-size:14px;font-weight:600;} .step .d{font-size:12px;color:#8a8a8a;margin-top:5px;line-height:1.6;}
+  .step code{background:#f2f3f5;padding:1px 5px;border-radius:4px;color:#07C160;font-size:11px;}
+</style>
+</head>
+<body>
+
+  <div class="phone">
+    <div class="statusbar"><span>12:11</span><span>●●● 5G 🔋</span></div>
+
+    <!-- 0 会话 -->
+    <div class="stage on" id="s0">
+      <div class="wx-nav"><span class="back">‹</span>老绿</div>
+      <div class="chat">
+        <div class="sys">下午 12:11</div>
+        <div class="msg">
+          <div class="av"><img src="avatar_lao.jpg" alt=""></div>
+          <div class="bubble">
+            <div style="font-size:13px;color:#333;margin-bottom:8px">帮你建了个家庭账本，点进来一起记～</div>
+            <div class="share-card" id="card">
+              <div class="sc-top">
+                <div class="sc-icon">🌿</div>
+                <div class="sc-txt">
+                  <div class="sc-title">流年小账 邀请你一起记账</div>
+                  <div class="sc-desc">老绿 邀请你加入家庭账本</div>
+                </div>
+                <div class="sc-cover">🌿</div>
+              </div>
+              <div class="sc-foot"><span class="mini">程</span>小程序</div>
+            </div>
+          </div>
+        </div>
+        <div class="tap-hint">👆 点击卡片</div>
+      </div>
+    </div>
+
+    <!-- 1 校验 -->
+    <div class="stage" id="s1">
+      <div class="loader"><div class="spinner"></div><div class="l1">正在验证邀请…</div><div class="l2">校验 token 有效性 / 是否已加入</div></div>
+    </div>
+
+    <!-- 2 邀请确认页 -->
+    <div class="stage" id="s2">
+      <div class="inv-hero"><div class="fav">流</div><div class="fn">流年小账</div><div class="fc">老绿 邀请你加入</div></div>
+      <div class="inv-body">
+        <div class="inv-card">
+          <div class="inv-inviter">
+            <div class="av"><img src="avatar_lao.jpg" alt=""></div>
+            <div><div class="nm">老绿</div><div class="desc">邀请你加入家庭账本</div></div>
+            <div class="tag">创建者</div>
+          </div>
+          <div class="av-stack"><div class="sa g"><img src="avatar_lao.jpg" alt=""></div><div class="sa b"><img src="avatar_xiao.jpg" alt=""></div><div class="sa p"><img src="avatar_a.jpg" alt=""></div></div>
+          <div class="members-line">已有 <b>3</b> 位成员一起记账</div>
+        </div>
+        <button class="btn green" id="submit" style="margin-top:18px">提交加入申请</button>
+        <button class="btn ghost" onclick="setStage(0)">暂不加入</button>
+        <p style="font-size:11px;color:#c0c0c0;margin-top:14px">提交申请即表示同意《家庭账本隐私协议》</p>
+      </div>
+    </div>
+
+    <!-- 3 审核中 -->
+    <div class="stage" id="s3">
+      <div class="inv-hero"><div class="fav">流</div><div class="fn">流年小账</div><div class="fc">等待创建者确认</div></div>
+      <div class="inv-body">
+        <div class="pend-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#07C160" stroke-width="1.8" opacity=".3"/><path d="M12 7.6V12l3.1 1.9" fill="none" stroke="#07C160" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <p class="tip">申请已提交，正在<strong>等待创建者「老绿」确认</strong>。<br/>确认结果将通过微信通知你，通常几分钟内处理。</p>
+        <p class="tip" style="font-size:12px;color:#bbb;margin-top:10px">创建者可在「我的 → 待审批申请」中同意或拒绝</p>
+      </div>
+    </div>
+
+    <!-- 4 加入成功（零账目信息） -->
+    <div class="stage" id="s4">
+      <div class="home-nav">流年小账</div>
+      <div class="welcome-wrap">
+        <div class="w-icon"><svg viewBox="0 0 24 24"><path d="M5 12.6l4.4 4.4L19 7.4" fill="none" stroke="#07C160" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="w-title">已加入「流年小账」</div>
+        <div class="w-sub">你已成为家庭成员，现在可以和大家一起记账了。</div>
+        <div class="w-members"><div class="sa"><img src="avatar_lao.jpg" alt=""></div><div class="sa"><img src="avatar_xiao.jpg" alt=""></div><div class="sa"><img src="avatar_a.jpg" alt=""></div></div>
+        <div class="w-note">从今天起，你的记账会记录在这个家庭账本中。</div>
+        <div class="w-btn">进入账本</div>
+      </div>
+    </div>
+
+    <div class="ctrl">
+      <div class="dots" id="dots"></div>
+      <button id="replay">▶ 重播流程</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>邀请 · 申请确认流程</h3>
+    <div class="sub">点击卡片后仅提交申请，由创建者确认后才成为成员，防止链接被滥用。</div>
+    <div class="step on" data-s="0"><div class="h">① 会话中点击分享卡片</div><div class="d">卡片只含家庭名 + 邀请人，携带 <code>familyId&amp;token</code> 拉起</div></div>
+    <div class="step" data-s="1"><div class="h">② 校验邀请 token</div><div class="d">校验有效期 / 是否一次性已用 / 是否已加入，杜绝失效与被复用链接</div></div>
+    <div class="step" data-s="2"><div class="h">③ 邀请确认页</div><div class="d">展示邀请人与家庭成员；用户点「提交加入申请」，<strong>不等于立即加入</strong></div></div>
+    <div class="step" data-s="3"><div class="h">④ 等待创建者确认</div><div class="d">创建者在「我的 → 待审批申请」中同意 / 拒绝，申请人处于 <code>pending</code> 状态</div></div>
+    <div class="step" data-s="4"><div class="h">⑤ 通过 → 成为成员</div><div class="d">写入 <code>familyMember(role=member)</code>、<code>invitation=accepted</code>，进入欢迎页</div></div>
+  </div>
+
+<script>
+let cur=0, timers=[];
+function clearTimers(){timers.forEach(t=>clearTimeout(t));timers=[];}
+const N=5;
+document.getElementById('dots').innerHTML=Array.from({length:N},()=>'<span class="dot"></span>').join('');
+function setStage(n){
+  cur=n;
+  document.querySelectorAll('.stage').forEach((s,i)=>s.classList.toggle('on',i===n));
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===n));
+  document.querySelectorAll('.step').forEach(s=>s.classList.toggle('on',+s.dataset.s===n));
+}
+function play(){
+  clearTimers(); setStage(0);
+  const card=document.getElementById('card'), sub=document.getElementById('submit');
+  card.classList.remove('press'); sub.classList.remove('press');
+  timers.push(setTimeout(()=>card.classList.add('press'),1100));
+  timers.push(setTimeout(()=>setStage(1),1380));
+  timers.push(setTimeout(()=>setStage(2),2950));
+  timers.push(setTimeout(()=>sub.classList.add('press'),4400));
+  timers.push(setTimeout(()=>setStage(3),4700));
+  timers.push(setTimeout(()=>setStage(4),6300));
+}
+document.getElementById('card').onclick=()=>{clearTimers();setStage(1);timers.push(setTimeout(()=>setStage(2),1500));};
+document.getElementById('submit').onclick=()=>setStage(3);
+document.getElementById('replay').onclick=play;
+play();
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!-- pages/index/index.wxml —— 对照 doc/家庭记账小程序原型.html -->
+<view class="page">
+  <navigation-bar title="{{familyName}}" back="{{false}}" color="black" background="#ffffff"></navigation-bar>
+  <view class="page-body pad" style="padding-top: 8rpx;">
+
+    <!-- 本月概览：绿色 Hero -->
+    <view class="hero" bindtap="goStats">
+      <view class="hero-top">
+        <text class="hero-month">本月 · {{monthLabel}}</text>
+        <view class="hero-av">{{myInitial}}</view>
+      </view>
+      <view class="hero-label">本月结余（元）</view>
+      <view class="hero-balance">{{balanceText}}</view>
+      <view class="hero-io">
+        <view class="hero-io-item">收入 <text class="hero-io-num">{{incomeText}}</text></view>
+        <view class="hero-io-item">支出 <text class="hero-io-num">{{expenseText}}</text></view>
+      </view>
+      <view class="mini-trend">
+        <canvas wx:if="{{miniOn}}" type="2d" id="miniTrend" class="mini-canvas"></canvas>
+        <image wx:elif="{{miniImg}}" class="mini-canvas" src="{{miniImg}}" mode="scaleToFill"></image>
+      </view>
+      <view class="hero-go">查看统计 ›</view>
+    </view>
+
+    <!-- 今日 -->
+    <view class="card today" bindtap="goDetail">
+      <view class="t-col">
+        <view class="t-l">今日已记账</view>
+        <view class="t-n"><text class="bold t-num">{{todayCount}}</text><text class="t-unit"> 笔</text></view>
+      </view>
+      <view class="t-sep"></view>
+      <view class="t-col">
+        <view class="t-l">支出</view>
+        <view class="t-n expense bold t-num">¥{{todayExpenseText}}</view>
+      </view>
+      <view class="t-sep"></view>
+      <view class="t-col">
+        <view class="t-l">收入</view>
+        <view class="t-n income bold t-num">¥{{todayIncomeText}}</view>
+      </view>
+    </view>
+
+    <!-- 最近 5 天 -->
+    <view class="section-title">最近 5 天</view>
+    <view wx:if="{{recent.length === 0}}" class="empty">还没有记账，点下方按钮记一笔吧</view>
+    <view wx:else class="card trans-card">
+      <view wx:for="{{recent}}" wx:key="date" class="day-group">
+        <view class="day-head">
+          <text class="day-title">{{item.dateLabel}}</text>
+          <text class="day-week">{{item.week}}</text>
+        </view>
+        <view wx:for="{{item.items}}" wx:for-item="t" wx:key="id" class="tx-row">
+          <view class="tx-ic">{{t.category_icon}}</view>
+          <view class="tx-mid">
+            <view class="row between">
+              <text class="tx-cat">{{t.category_name}}</text>
+              <text class="tx-amt {{t.typeCls}}">{{t.sign}}¥{{t.amountText}}</text>
+            </view>
+            <view class="tx-sub">{{t.sub}}</view>
+          </view>
+        </view>
+        <view class="day-sum">
+          <text>收 <text class="bold">¥{{item.incText}}</text></text>
+          <text>支 <text class="bold">¥{{item.expText}}</text></text>
+          <text>结余 <text class="bold {{item.balanceCls}}">{{item.balText}}</text></text>
+        </view>
+      </view>
+    </view>
+
+    <view class="tab-clear"></view>
+  </view>
+
+  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
+</view>

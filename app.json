@@ -1,0 +1,39 @@
+{
+  "pages": [
+    "pages/start/start",
+    "pages/index/index",
+    "pages/record/record",
+    "pages/stats/stats",
+    "pages/detail/detail",
+    "pages/invite/invite",
+    "pages/invite/confirm",
+    "pages/welcome/welcome",
+    "pages/settings/settings",
+    "pages/profile/profile",
+    "pages/members/members",
+    "pages/about/about",
+    "pages/privacy/privacy"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom",
+    "backgroundColor": "#f2f3f5",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#9a9a9a",
+    "selectedColor": "#07C160",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/detail/detail", "text": "明细" },
+      { "pagePath": "pages/stats/stats", "text": "统计" },
+      { "pagePath": "pages/settings/settings", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

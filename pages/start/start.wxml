@@ -1,0 +1,52 @@
+<!-- pages/start/start.wxml —— 严格对照 doc/家庭记账小程序原型.html 首启页 -->
+<view class="page start-page">
+  <view class="start-hero" style="padding-top: {{statusBarHeight}}rpx;">
+    <view class="start-logo">账</view>
+    <view class="start-title">家庭记账本</view>
+    <view class="start-sub">和家人们一起，把每天的收支记清楚，随时查看家庭账本。</view>
+  </view>
+
+  <view class="start-body" wx:if="{{landing}}">
+    <view class="start-actions">
+      <view class="start-btn create" bindtap="onCreate">
+        <image class="si" src="{{icons.plus}}" mode="aspectFit" />
+        <text>创建家庭账本</text>
+      </view>
+      <view class="start-btn join" bindtap="onJoinDemo">
+        <image class="si" src="{{icons.circlePlus}}" mode="aspectFit" />
+        <text>加入已有家庭</text>
+      </view>
+    </view>
+    <view class="start-note" style="white-space:pre-wrap;">加入家庭需由家人在 App 内分享邀请卡片，\n你提交申请后由创建者确认。</view>
+  </view>
+
+  <view class="loading-mask" wx:if="{{loading}}">
+    <view class="loading-box">加载中…</view>
+  </view>
+
+  <!-- 创建家庭弹层（对照原型 #cSheet：底部滑出，非系统弹窗） -->
+  <view class="c-mask {{createSheet ? 'show' : ''}}" bindtap="closeCreate"></view>
+  <view class="c-sheet {{createSheet ? 'show' : ''}}">
+    <view class="c-title">创建家庭账本</view>
+    <view class="c-sub">给家庭账本起个名字，你将成为创建者</view>
+    <input class="c-input {{inputFocused ? 'focus' : ''}}" value="{{createName}}" maxlength="12"
+      placeholder="如：流年小账" placeholder-class="c-ph" focus="{{createSheet}}"
+      bindinput="onNameInput" bindfocus="onNameFocus" bindblur="onNameBlur" />
+    <view class="c-ok {{creating ? 'disabled' : ''}}" hover-class="press" hover-stay-time="80" bindtap="confirmCreate">{{creating ? '创建中…' : '创建'}}</view>
+    <view class="c-cancel" hover-class="press" hover-stay-time="80" bindtap="closeCreate">取消</view>
+  </view>
+
+  <!-- 隐私授权弹窗（首次进入拦截） -->
+  <view class="privacy-mask" wx:if="{{privacy}}" catchtap="noop">
+    <view class="privacy-dlg">
+      <view class="pd-title">隐私授权</view>
+      <view class="pd-text">欢迎使用流年小账。本小程序会获取你的微信昵称、头像，用于识别家庭成员；记账数据仅家人可见，不会对外共享。请阅读《隐私政策》，同意后继续使用。</view>
+      <button class="pd-link" bindtap="goPrivacy">查看隐私政策 ›</button>
+      <view class="pd-warn {{privacyWarn ? 'show' : ''}}">需同意隐私政策后才能使用本小程序</view>
+      <view class="pd-btns">
+        <button class="pd-refuse" bindtap="onRefusePrivacy">拒绝</button>
+        <button class="pd-agree" bindtap="onAgreePrivacy">同意</button>
+      </view>
+    </view>
+  </view>
+</view>

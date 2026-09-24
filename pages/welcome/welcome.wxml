@@ -1,0 +1,21 @@
+<!-- pages/welcome/welcome.wxml —— 对照 doc/家庭记账小程序原型.html 加入成功页 -->
+<view class="page">
+  <view class="welcome-body" style="padding-top: {{statusBarHeight + 120}}rpx;">
+    <view class="w-icon"><image class="w-ic" src="{{checkIcon}}" mode="aspectFit" /></view>
+    <view class="w-title">已加入「{{family}}」</view>
+    <view class="w-sub">你已成为家庭成员，现在可以和大家一起记账了。</view>
+
+    <view class="avatars">
+      <block wx:if="{{avatars.length}}">
+        <view wx:for="{{avatars}}" wx:key="initial" class="sa" style="background:{{item.color}};margin-left:{{index === 0 ? 0 : '-20rpx'}};">{{item.initial}}</view>
+      </block>
+      <block wx:else>
+        <view class="sa" style="background:var(--brand);">家</view>
+      </block>
+    </view>
+
+    <view class="w-note">从今天起，你的记账会记录在这个家庭账本中。</view>
+    <button class="btn btn-primary btn-block w-enter" bindtap="enterHome">进入账本</button>
+    <view class="w-agree">欢迎加入 · 一起把日子记清楚</view>
+  </view>
+</view>

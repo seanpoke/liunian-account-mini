@@ -1,0 +1,44 @@
+<!-- components/record-sheet/record-sheet.wxml —— 底部滑出记账弹层（原型 .mask + .sheet） -->
+<view class="record-page {{shown ? 'show' : ''}} {{closing ? 'closing' : ''}}" catchtap="onBackdropTap">
+  <view class="record-backdrop"></view>
+  <view class="record-sheet" catchtap="stop">
+    <view class="sheet-handle"></view>
+
+    <view class="type-switch">
+      <view class="type-opt {{type === 'expense' ? 'on-expense' : ''}}" data-type="expense" bindtap="switchType">支出</view>
+      <view class="type-opt {{type === 'income' ? 'on-income' : ''}}" data-type="income" bindtap="switchType">收入</view>
+    </view>
+
+    <view class="amount-wrap">
+      <input class="amount-input" type="digit" placeholder="0.00" placeholder-class="amount-ph" value="{{amountText}}" bindinput="onAmount" focus="{{shown && !editId}}" />
+    </view>
+
+    <view class="cat-grid">
+      <view wx:for="{{cats}}" wx:key="id" class="cat-cell" data-id="{{item.id}}" bindtap="selectCat">
+        <view class="cat-ic {{selectedCatId === item.id ? 'sel' : ''}}">{{item.icon}}</view>
+        <view class="cat-name {{selectedCatId === item.id ? 'sel' : ''}}">{{item.name}}</view>
+      </view>
+    </view>
+
+    <view class="info-card">
+      <picker mode="date" value="{{date}}" bindchange="onDate">
+        <view class="info-row">
+          <text class="info-label">日期</text>
+          <view class="info-value">{{date}} <text class="info-arrow">›</text></view>
+        </view>
+      </picker>
+      <view class="info-line"></view>
+      <view class="info-row">
+        <text class="info-label">备注</text>
+        <input class="note-input" placeholder="写点什么…" value="{{note}}" bindinput="onNote" />
+      </view>
+    </view>
+
+    <view class="save-btn {{saving ? 'disabled' : ''}}" bindtap="save">
+      <text wx:if="{{!saving}}">保存</text>
+      <view wx:else class="save-spinner"></view>
+    </view>
+
+    <view wx:if="{{editId}}" class="delete-link" bindtap="remove">删除这笔</view>
+  </view>
+</view>

@@ -1,0 +1,36 @@
+<!-- pages/privacy/privacy.wxml -->
+<view class="page">
+  <navigation-bar title="隐私政策" back="{{mode === 'settings'}}" color="black" background="#fff"></navigation-bar>
+  <view class="page-body pad policy">
+    <view class="p-h">流年小账隐私政策</view>
+    <view class="p-sub">最后更新：2026-09</view>
+
+    <view class="p-sec"><text class="p-t">1. 我们收集的信息</text>
+      <text class="p-c">仅在您授权同意后，获取您的微信昵称、微信头像，用于识别家庭成员。我们不会收集您的手机号、地理位置、相册、通讯录等其他个人信息。</text>
+    </view>
+    <view class="p-sec"><text class="p-t">2. 信息的存储与使用</text>
+      <text class="p-c">您的记账数据、微信昵称与头像存储于服务端数据库（MySQL）。仅您和您添加的家庭成员可查看，不向任何第三方出售、转让或共享。</text>
+    </view>
+    <view class="p-sec"><text class="p-t">3. 您的信息管理</text>
+      <text class="p-c">您可随时删除自己的记账记录；如需清除微信昵称/头像等信息，请联系小程序管理员处理。</text>
+    </view>
+    <view class="p-sec"><text class="p-t">4. 信息安全</text>
+      <text class="p-c">我们依托服务端鉴权（token + 家庭/角色校验）与数据库访问权限防止越权访问；但互联网环境无法保证绝对安全。</text>
+    </view>
+    <view class="p-sec"><text class="p-t">5. 关于未成年人</text>
+      <text class="p-c">本小程序面向家庭成年人使用，不主动收集未成年人个人信息。</text>
+    </view>
+    <view class="p-sec"><text class="p-t">6. 联系我们</text>
+      <text class="p-c">如对本政策有疑问，可在「我的」页通过演示工具联系管理员，或发送邮件至 privacy@liunian-account.com。</text>
+    </view>
+    <view class="p-sec"><text class="p-t">7. 政策更新</text>
+      <text class="p-c">本政策变更后将在小程序内更新展示。</text>
+    </view>
+
+    <view style="height: 40rpx;"></view>
+  </view>
+
+  <view wx:if="{{mode === 'gate'}}" class="policy-foot">
+    <button class="btn btn-primary btn-block" bindtap="agree">同意并继续</button>
+  </view>
+</view>

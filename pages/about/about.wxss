@@ -1,0 +1,27 @@
+/* pages/about/about.wxss */
+.about-hero {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 56rpx 0 40rpx;
+}
+.logo {
+  width: 132rpx; height: 132rpx; border-radius: 32rpx;
+  background: linear-gradient(135deg, #07C160, #0aa85a);
+  color: #fff; font-size: 64rpx; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 14rpx 36rpx rgba(7, 193, 96, 0.25);
+}
+.name { font-size: 38rpx; font-weight: 700; margin-top: 28rpx; }
+.ver { font-size: 24rpx; color: var(--text-3); margin-top: 12rpx; }
+
+.intro {
+  font-size: 28rpx; color: var(--text-2); line-height: 1.7;
+}
+
+.menu { padding: 0 28rpx; }
+.item { padding: 30rpx 0; font-size: 30rpx; }
+.chev { color: #cfcfcf; font-size: 34rpx; line-height: 1; }
+
+.foot {
+  text-align: center; font-size: 22rpx; color: var(--text-3);
+  margin-top: 48rpx;
+}

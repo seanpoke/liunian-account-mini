@@ -1,0 +1,29 @@
+<!-- pages/members/members.wxml -->
+<view class="page">
+  <navigation-bar title="成员管理" back="{{true}}" color="black" background="#f5f6fa"></navigation-bar>
+  <view class="page-body pad">
+
+    <view class="card group">
+      <view wx:for="{{members}}" wx:key="memberId" class="mrow" data-id="{{item.memberId}}" bindtap="tapMember">
+        <view class="av" style="background:{{item.bg}};">{{item.initial}}</view>
+        <view class="nm">{{item.displayName}}<text class="sub">{{item.sub}}</text></view>
+        <view class="tag {{item.role === 'owner' ? 'own' : ''}}">{{item.role === 'owner' ? '创建者' : '成员'}}</view>
+        <text class="chev">›</text>
+      </view>
+    </view>
+
+    <view wx:if="{{pending.length}}" class="card group" style="margin-top:20rpx;">
+      <view class="sec-title">待审批</view>
+      <view wx:for="{{pending}}" wx:key="applyId" class="mrow">
+        <view class="av" style="background:{{item.bg}};">{{item.initial}}</view>
+        <view class="nm">{{item.nickname}}<text class="sub">{{item.sub}}</text></view>
+        <view class="pend-actions">
+          <text class="p-ok" data-id="{{item.applyId}}" catchtap="approve">通过</text>
+          <text class="p-no" data-id="{{item.applyId}}" catchtap="reject">拒绝</text>
+        </view>
+      </view>
+    </view>
+
+    <button class="btn-primary btn-block" style="margin-top:28rpx;" bindtap="invite">邀请成员</button>
+  </view>
+</view>

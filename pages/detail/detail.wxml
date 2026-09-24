@@ -1,0 +1,46 @@
+<!-- pages/detail/detail.wxml —— 对照 doc/家庭记账小程序原型.html 明细页 -->
+<view class="page">
+  <navigation-bar title="账单明细" back="{{false}}" color="black" background="#f5f6fa"></navigation-bar>
+  <view class="page-body pad">
+    <view class="chip-label">按类型</view>
+    <view class="chip-row">
+      <view class="chip {{typeSel==='all'?'on':''}}" data-t="all" bindtap="onType">全部</view>
+      <view class="chip {{typeSel==='expense'?'on':''}}" data-t="expense" bindtap="onType">支出</view>
+      <view class="chip {{typeSel==='income'?'on':''}}" data-t="income" bindtap="onType">收入</view>
+    </view>
+
+    <view class="chip-label">按成员</view>
+    <view class="chip-row">
+      <view class="chip {{memberSel===''?'on':''}}" data-id="" bindtap="onMember">全部</view>
+      <view wx:for="{{members}}" wx:key="openid" class="chip {{memberSel===item.openid?'on':''}}" data-id="{{item.openid}}" bindtap="onMember">{{item.nickname}}</view>
+    </view>
+
+    <view class="trans-card">
+      <view wx:if="{{groups.length === 0}}" class="empty">暂无记账记录</view>
+      <view wx:for="{{groups}}" wx:key="date" class="day-block">
+        <view class="date-head">
+          <text class="dh-d">{{item.dateLabel}}</text>
+          <text class="dh-w">{{item.week}}</text>
+        </view>
+        <view wx:for="{{item.items}}" wx:for-item="t" wx:key="id" class="trans" data-id="{{t.id}}" bindtap="openItem">
+          <view class="ic">{{t.category_icon}}</view>
+          <view class="mid">
+            <view class="line1">
+              <text class="tcat">{{t.category_name}}</text>
+              <text class="amt {{t.typeCls}}">{{t.sign}}¥{{t.amountText}}</text>
+            </view>
+            <view class="note">{{t.sub}}</view>
+          </view>
+        </view>
+        <view class="day-sum">
+          <text>收 <text class="b {{item.inc>0?'income':''}}">¥{{item.incText}}</text></text>
+          <text>支 <text class="b {{item.exp>0?'expense':''}}">¥{{item.expText}}</text></text>
+          <text>结余 <text class="b {{item.balanceCls}}">¥{{item.balText}}</text></text>
+        </view>
+      </view>
+    </view>
+    <view class="tab-clear"></view>
+  </view>
+
+  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
+</view>

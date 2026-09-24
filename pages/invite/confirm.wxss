@@ -1,0 +1,97 @@
+/* pages/invite/confirm.wxss —— 严格对照 doc/邀请确认页落地动效.html（px × 2 = rpx） */
+
+/* 整页背景强制白色，避免跟灰色按钮融为一体 */
+.page { background: #fff; }
+
+/* 阶段① loader 全屏覆盖 */
+.loader-mask {
+  position: fixed; left: 0; right: 0; top: 0; bottom: 0;
+  background: rgba(20, 20, 20, .55);
+  display: flex; align-items: center; justify-content: center; z-index: 999;
+}
+.loader {
+  background: rgba(0, 0, 0, .82); border-radius: 28rpx;
+  padding: 52rpx 68rpx; color: #fff; text-align: center;
+}
+.spinner {
+  width: 68rpx; height: 68rpx; margin: 0 auto 28rpx;
+  border: 6rpx solid rgba(255, 255, 255, .25); border-top-color: #07C160;
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader .l1 { font-size: 28rpx; }
+.loader .l2 { font-size: 22rpx; opacity: .6; margin-top: 12rpx; }
+
+/* 阶段②/③ 邀请头部（绿底 hero） */
+.invite-hero {
+  height: 376rpx;
+  background: linear-gradient(135deg, #07C160, #0aa85a);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff;
+}
+.fav {
+  width: 132rpx; height: 132rpx; border-radius: 50%;
+  background: rgba(255, 255, 255, .22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56rpx; font-weight: 700; color: #fff; margin-bottom: 28rpx;
+}
+.fn { font-size: 40rpx; font-weight: 700; letter-spacing: 1rpx; }
+.fc { font-size: 26rpx; opacity: .92; margin-top: 14rpx; }
+
+.invite-body { padding: 40rpx 24rpx; background: #fff; }
+.invite-card {
+  background: #fff; border-radius: 32rpx; box-shadow: 0 12rpx 40rpx rgba(17, 24, 39, .06);
+  padding: 36rpx; margin-bottom: 28rpx;
+}
+.invite-inviter { display: flex; align-items: center; gap: 26rpx; }
+.av {
+  width: 92rpx; height: 92rpx; border-radius: 50%; color: #fff;
+  font-size: 36rpx; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none;
+}
+.inv-info { flex: 1; min-width: 0; }
+.nm { font-size: 32rpx; font-weight: 600; }
+.desc { font-size: 26rpx; color: var(--text-3); margin-top: 6rpx; }
+.tag { font-size: 22rpx; color: #999; background: #F2F3F5; padding: 4rpx 16rpx; border-radius: 12rpx; flex: none; }
+
+.av-stack { display: flex; align-items: center; margin: 36rpx 0 0; }
+.sa {
+  width: 68rpx; height: 68rpx; border-radius: 50%; border: 4rpx solid #fff;
+  margin-left: -20rpx; display: flex; align-items: center; justify-content: center;
+  font-size: 26rpx; font-weight: 700; color: #fff; flex: none;
+}
+.sa:first-child { margin-left: 0; }
+.members-line { font-size: 26rpx; color: var(--text-3); margin-top: 24rpx; }
+.members-line .b { color: #333; }
+
+.btn-green {
+  width: 100%; height: 96rpx; background: #07C160; color: #fff;
+  border-radius: 24rpx; font-size: 30rpx; font-weight: 600; line-height: 96rpx;
+  text-align: center; margin-top: 36rpx;
+}
+.btn-green.disabled { opacity: .7; }
+.btn-green:active { opacity: .9; }
+.btn-ghost2 {
+  width: 100%; height: 96rpx; background: #F5F6F8; color: #333;
+  border-radius: 24rpx; font-size: 30rpx; font-weight: 600; line-height: 96rpx;
+  text-align: center; margin-top: 20rpx;
+}
+.btn-ghost2:active { background: #EBECEF; }
+.btn-spinner {
+  width: 32rpx; height: 32rpx; margin: 32rpx auto;
+  border: 4rpx solid rgba(255,255,255,.35); border-top-color: #fff;
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+
+.invite-agree { text-align: center; font-size: 22rpx; color: #c0c0c0; margin-top: 32rpx; line-height: 1.6; }
+
+/* 阶段③ 等待确认 */
+.pend-state { text-align: center; padding-top: 12rpx; }
+.pend-icon {
+  width: 128rpx; height: 128rpx; border-radius: 50%; background: #E8F8EE;
+  display: flex; align-items: center; justify-content: center; margin: 36rpx auto 28rpx;
+}
+.pend-ic { width: 64rpx; height: 64rpx; }
+.pend-title { font-size: 30rpx; color: #333; line-height: 1.7; }
+.pend-title.bold { font-weight: 600; }
+.pend-sub { font-size: 24rpx; color: #9a9a9a; line-height: 1.65; margin-top: 20rpx; }
+.pend-sub + .pend-sub { margin-top: 0; }
+

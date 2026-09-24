@@ -1,0 +1,25 @@
+<!-- pages/profile/profile.wxml -->
+<view class="page">
+  <navigation-bar title="编辑资料" back="{{true}}" color="black" background="#f5f6fa"></navigation-bar>
+  <view class="page-body pad">
+
+    <view class="card center profile-card">
+      <view class="av" style="background:{{bg}};">{{initial}}</view>
+      <view class="nm">{{nickname}}</view>
+    </view>
+
+    <view class="card">
+      <view class="row between item" bindtap="editName">
+        <text class="muted">昵称</text>
+        <view class="row">{{nickname}} <text class="chev">›</text></view>
+      </view>
+      <view class="divider"></view>
+      <view class="row between item">
+        <text class="muted">角色</text>
+        <text class="muted-3">{{roleText}}</text>
+      </view>
+    </view>
+
+    <button class="btn-primary btn-block save" bindtap="save">保存</button>
+  </view>
+</view>
