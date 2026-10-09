@@ -1,9 +1,7 @@
 // app.js
 // 全局应用入口。
-// 说明：本工程为「前端独立可运行」版本，后端未就绪，全部接口走 mock。
-// 关键敏感配置（如 AppSecret）绝不硬编码在前端，而是由 getServerConfig()
-// 模拟「从服务端公开配置接口动态获取」——真实环境下 AppSecret 仅存于服务端，
-// 由服务端在 code2Session 时使用，前端永远接触不到。
+// 前端统一通过 utils/api.js 调用真实后端（基址见 utils/config.js，不在业务代码写死 IP/端口）。
+// 关键敏感配置（如 AppSecret）绝不出现在前端，仅由服务端在 code2Session 时使用。
 const { getServerConfig } = require('./utils/config')
 
 App({

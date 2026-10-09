@@ -1,6 +1,7 @@
 // components/record-sheet/record-sheet.js
 const api = require('../../utils/api')
 const fmt = require('../../utils/format')
+const store = require('../../utils/store')
 
 Component({
   properties: {
@@ -20,8 +21,11 @@ Component({
   },
   lifetimes: {
     attached() {
-      this._cats = api.getCategories()
-      this.setData({ date: fmt.today() })
+      const fid = store.getSession() && store.getSession().familyId
+      api.getCategories(fid).then((cats) => {
+        this._cats = cats
+        this.setData({ date: fmt.today() })
+      }).catch(() => { this.setData({ date: fmt.today() }) })
     }
   },
   methods: {
@@ -46,7 +50,7 @@ Component({
       api.getTransaction(id).then((t) => {
         this.setData({
           type: t.type, amountText: fmt.fenToYuan(t.amount).toFixed(2),
-          selectedCatId: t.category_id, date: t.date, note: t.note,
+          selectedCatId: t.categoryId, date: t.date, note: t.note,
           cats: t.type === 'income' ? this._cats.income : this._cats.expense
         })
       }).catch((e) => wx.showToast({ title: e.message, icon: 'none' }))
@@ -66,7 +70,7 @@ Component({
       if (!amount) { wx.showToast({ title: '请输入金额', icon: 'none' }); return }
       const cat = (d.type === 'income' ? this._cats.income : this._cats.expense).find(c => c.id === d.selectedCatId)
       if (!cat) { wx.showToast({ title: '请选择分类', icon: 'none' }); return }
-      const payload = { type: d.type, amount, categoryId: cat.id, categoryName: cat.name, date: d.date, note: d.note }
+      const payload = { type: d.type, amount, categoryId: cat.id, date: d.date, note: d.note }
       this.setData({ saving: true })
       const p = d.editId ? api.updateTransaction(d.editId, payload) : api.createTransaction(payload)
       p.then(() => {

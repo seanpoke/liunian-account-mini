@@ -13,6 +13,8 @@ Page({
     const p1 = api.getMembers(s.familyId)
     const p2 = s.role === 'owner' ? api.getPending(s.familyId).catch(() => []) : Promise.resolve([])
     Promise.all([p1, p2]).then(([list, pend]) => {
+      const owner = list.find(m => m.role === 'owner')
+      const ownerName = owner ? owner.nickname : ''
       const members = list.filter(m => m.status === 'active').map(m => {
         const isSelf = m.openid === s.openid
         const jd = m.joinedAt ? m.joinedAt.slice(0, 10) : ''
@@ -31,7 +33,7 @@ Page({
         return Object.assign({}, p, {
           initial: (p.nickname || '?').slice(0, 1),
           bg: fmt.avGrad(p.color || '#bfbfbf'),
-          sub: '来自「' + (p.inviterNickname || '家人') + '」的邀请 · ' + at.replace('T', ' ')
+          sub: '来自「' + (ownerName || '家人') + '」的邀请 · ' + at.replace('T', ' ')
         })
       })
       this.setData({ members, pending })

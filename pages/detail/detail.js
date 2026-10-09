@@ -20,7 +20,7 @@ Page({
     const s = store.getSession()
     if (s && s.familyId) {
       api.getMembers(s.familyId).then(list => {
-        this.setData({ members: [{ openid: '', nickname: '全部' }].concat(list.filter(m => m.role !== 'pending')) })
+        this.setData({ members: [{ openid: '', nickname: '全部' }].concat(list.filter(m => m.status === 'active')) })
       }).catch(() => {})
     }
   },
@@ -44,13 +44,13 @@ Page({
         t.amountText = fmt.formatMoney(t.amount)
         t.typeCls = t.type === 'income' ? 'income' : 'expense'
         t.sign = t.type === 'income' ? '+' : '-'
-        const time = t.created_at ? t.created_at.slice(11, 16) : ''
+        const time = t.createdAt ? t.createdAt.slice(11, 16) : ''
         t.sub = [t.note || '无备注', t.nickname, time].filter(Boolean).join(' · ')
         total += t.type === 'income' ? t.amount : -t.amount
         ;(map[t.date] = map[t.date] || []).push(t)
       })
       const groups = Object.keys(map).sort().reverse().map(date => {
-        const items = map[date].sort((a, b) => a.created_at < b.created_at ? 1 : -1)
+        const items = map[date].sort((a, b) => a.createdAt < b.createdAt ? 1 : -1)
         let exp = 0, inc = 0
         items.forEach(t => t.type === 'income' ? inc += t.amount : exp += t.amount)
         const bal = inc - exp

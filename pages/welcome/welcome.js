@@ -1,6 +1,7 @@
 // pages/welcome/welcome.js
 const api = require('../../utils/api')
 const store = require('../../utils/store')
+const fmt = require('../../utils/format')
 
 function statusBar() {
   const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
@@ -24,7 +25,7 @@ Page({
       api.getMembers(s.familyId)
         .then(list => {
           const acts = (list || []).filter(m => m.status === 'active').slice(0, 5)
-          this.setData({ avatars: acts.map(m => ({ initial: m.initial, color: m.color })) })
+          this.setData({ avatars: acts.map(m => ({ initial: (m.nickname || '?').slice(0, 1), color: fmt.avGrad(m.color || '#07C160') })) })
         })
         .catch(() => {})
     }

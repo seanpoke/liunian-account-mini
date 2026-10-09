@@ -1,9 +1,14 @@
 // utils/api.js
-// 统一接口层。后端未就绪时走 mock；接入真实后端只需把 config.enableMock 置 false。
+// 统一接口层：一律走真实后端（基址见 config.getApiBase，业务代码不写死 IP/端口）。
 // 所有方法在成功时返回 data，失败时 throw Error(msg)。
 const { getServerConfig } = require('./config')
-const mock = require('./mock')
 const store = require('./store')
+
+// 从当前会话取家庭 ID（缺失时返回 undefined，由调用方/后端处理）
+function currentFamilyId() {
+  const s = store.getSession()
+  return s ? s.familyId : undefined
+}
 
 function token() {
   const s = store.getSession()
@@ -20,17 +25,17 @@ function buildQuery(q) {
 async function request(method, path, opts) {
   opts = opts || {}
   const cfg = await getServerConfig()
-  if (cfg.enableMock) {
-    const res = await mock.dispatch(method, path, opts.data, opts.query)
-    if (res.code !== 0) throw new Error(res.msg || ('错误码 ' + res.code))
-    return res.data
-  }
   return new Promise((resolve, reject) => {
     wx.request({
       url: cfg.apiBaseUrl + path + buildQuery(opts.query),
       method,
       data: opts.data,
-      header: { 'Authorization': 'Bearer ' + token(), 'content-type': 'application/json' },
+      header: (function () {
+        const h = { 'content-type': 'application/json' }
+        const t = token()
+        if (t) h['Authorization'] = 'Bearer ' + t
+        return h
+      })(),
       success(r) {
         const d = r.data
         if (d && d.code === 0) resolve(d.data)
@@ -51,7 +56,7 @@ function wxLogin() {
 // ---------- 命名接口 ----------
 const api = {
   wxLogin,
-  login: (code) => request('POST', '/login', { data: { code } }),
+  login: (code, extra) => request('POST', '/login', { data: Object.assign({ code }, extra || {}) }),
   createFamily: (name) => request('POST', '/family', { data: { name } }),
   getFamily: (id) => request('GET', '/family/' + id),
   updateFamily: (id, patch) => request('PATCH', '/family/' + id, { data: patch }),
@@ -78,15 +83,26 @@ const api = {
   quitFamily: (familyId) => request('POST', '/family/' + familyId + '/quit'),
   updateMe: (patch) => request('PATCH', '/family/' + (store.getSession() && store.getSession().familyId) + '/member/me', { data: patch }),
 
-  getReminder: () => request('GET', '/reminder'),
-  updateReminder: (payload) => request('PUT', '/reminder', { data: payload }),
+  getReminder: (familyId) => request('GET', '/reminder', { query: { familyId: familyId || currentFamilyId() } }),
+  updateReminder: (payload) => request('PUT', '/reminder', { data: Object.assign({ familyId: currentFamilyId() }, payload) }),
   getWxacode: (familyId) => request('GET', '/wxacode', { query: { familyId } }),
 
-  addCategory: (payload) => request('POST', '/category', { data: payload }),
-  getBudget: () => request('GET', '/budget'),
-  setBudget: (amount) => request('PUT', '/budget', { data: { amount } }),
+  addCategory: (payload) => request('POST', '/category', { data: Object.assign({ familyId: currentFamilyId() }, payload) }),
+  getBudget: (familyId) => request('GET', '/budget', { query: { familyId: familyId || currentFamilyId() } }),
+  setBudget: (amount, familyId) => request('PUT', '/budget', { data: { amount, familyId: familyId || currentFamilyId() } }),
 
-  getCategories: () => mock.getCategories()
+  getCategories: (familyId) => request('GET', '/categories', { query: { familyId } }).then((list) => {
+    const expense = []
+    const income = []
+    ;(list || []).forEach((c) => { if (c.type === 'income') income.push(c); else expense.push(c) })
+    return { expense, income }
+  }),
+
+  health: () => request('GET', '/health'),
+  deleteCategory: (id) => request('DELETE', '/category/' + id),
+  getTransactionsByDay: (query) => request('GET', '/transactions/by-day', { query }),
+  getPrivacy: () => request('GET', '/user/privacy'),
+  submitPrivacy: (agreed) => request('POST', '/user/privacy', { data: { agreed } })
 }
 
 module.exports = api

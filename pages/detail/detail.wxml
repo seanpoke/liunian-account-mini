@@ -23,10 +23,10 @@
           <text class="dh-w">{{item.week}}</text>
         </view>
         <view wx:for="{{item.items}}" wx:for-item="t" wx:key="id" class="trans" data-id="{{t.id}}" bindtap="openItem">
-          <view class="ic">{{t.category_icon}}</view>
+          <view class="ic">{{t.categoryIcon}}</view>
           <view class="mid">
             <view class="line1">
-              <text class="tcat">{{t.category_name}}</text>
+              <text class="tcat">{{t.categoryName}}</text>
               <text class="amt {{t.typeCls}}">{{t.sign}}¥{{t.amountText}}</text>
             </view>
             <view class="note">{{t.sub}}</view>

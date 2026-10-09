@@ -50,10 +50,10 @@
           <text class="day-week">{{item.week}}</text>
         </view>
         <view wx:for="{{item.items}}" wx:for-item="t" wx:key="id" class="tx-row">
-          <view class="tx-ic">{{t.category_icon}}</view>
+          <view class="tx-ic">{{t.categoryIcon}}</view>
           <view class="tx-mid">
             <view class="row between">
-              <text class="tx-cat">{{t.category_name}}</text>
+              <text class="tx-cat">{{t.categoryName}}</text>
               <text class="tx-amt {{t.typeCls}}">{{t.sign}}¥{{t.amountText}}</text>
             </view>
             <view class="tx-sub">{{t.sub}}</view>

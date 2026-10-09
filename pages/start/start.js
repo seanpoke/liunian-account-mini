@@ -2,6 +2,7 @@
 const store = require('../../utils/store')
 const flow = require('../../utils/flow')
 const api = require('../../utils/api')
+const { ENABLE_MOCK } = require('../../utils/config')
 
 function svgUri(svg) {
   const bytes = new Uint8Array(svg.length)
@@ -21,6 +22,7 @@ Page({
     landing: false,
     loading: false,
     familyName: '流年小账',
+    nickName: '',
     createSheet: false,
     createName: '',
     creating: false,
@@ -44,9 +46,13 @@ Page({
     }
   },
   // 隐私已同意：登录并根据身份路由
+  loginExtra() {
+    const n = (this.data.nickName || '').trim()
+    return n ? { nickname: n } : undefined
+  },
   enter() {
     this.setData({ loading: true })
-    flow.ensureLogin()
+    flow.ensureLogin(this.loginExtra())
       .then((s) => {
         if (s.isMember && s.familyId) {
           flow.routeAfterLogin()
@@ -79,6 +85,9 @@ Page({
   onNameInput(e) {
     this.setData({ createName: e.detail.value })
   },
+  onNickInput(e) {
+    this.setData({ nickName: e.detail.value })
+  },
   onNameFocus() { this.setData({ inputFocused: true }) },
   onNameBlur() { this.setData({ inputFocused: false }) },
   confirmCreate() {
@@ -86,7 +95,7 @@ Page({
     const name = (this.data.createName || '').trim() || '流年小账'
     this.setData({ creating: true })
     api.createFamily(name)
-      .then(() => flow.ensureLogin())
+      .then(() => flow.ensureLogin(this.loginExtra()))
       .then(() => flow.routeAfterLogin())
       .catch((e) => {
         this.setData({ creating: false })
@@ -102,16 +111,21 @@ Page({
   },
   // 首启页「加入已有家庭」：原型演示逻辑，模拟点开家人发来的邀请卡片
   onJoinDemo() {
-    wx.showToast({ title: '已模拟点开家人发来的邀请卡片', icon: 'none' })
-    setTimeout(() => {
-      this.setData({ loading: true })
-      flow.demoSeed()
-        .then(() => flow.switchIdentity('o_guest'))
-        .then(() => {
-          this.setData({ loading: false })
-          wx.navigateTo({ url: '/pages/invite/confirm?token=INV_DEMO_TOKEN' })
-        })
-        .catch((e) => { this.setData({ loading: false }); wx.showToast({ title: e.message || '失败', icon: 'none' }) })
-    }, 900)
+    if (ENABLE_MOCK) {
+      wx.showToast({ title: '已模拟点开家人发来的邀请卡片', icon: 'none' })
+      setTimeout(() => {
+        this.setData({ loading: true })
+        flow.demoSeed()
+          .then(() => flow.switchIdentity('o_guest'))
+          .then(() => {
+            this.setData({ loading: false })
+            wx.navigateTo({ url: '/pages/invite/confirm?token=INV_DEMO_TOKEN' })
+          })
+          .catch((e) => { this.setData({ loading: false }); wx.showToast({ title: e.message || '失败', icon: 'none' }) })
+      }, 900)
+      return
+    }
+    // 真实环境：加入家庭需由家人在微信会话中分享邀请卡片，点击卡片进入确认页
+    wx.showToast({ title: '请打开家人分享的邀请卡片加入', icon: 'none' })
   }
 })

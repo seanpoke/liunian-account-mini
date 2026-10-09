@@ -19,6 +19,16 @@
 .start-sub { color: var(--text-3); margin: 22rpx auto 0; font-size: 26rpx; line-height: 1.7; max-width: 496rpx; }
 
 .start-body { width: 100%; }
+.start-nick {
+  width: 100%; max-width: 640rpx; margin: 0 auto;
+  background: #f7f8fa; border-radius: 24rpx; padding: 24rpx 28rpx; box-sizing: border-box;
+}
+.sn-label { font-size: 26rpx; color: var(--text-3); }
+.sn-input {
+  width: 100%; box-sizing: border-box; height: 80rpx; margin-top: 8rpx;
+  font-size: 32rpx; color: #1a1a1a;
+}
+.sn-ph { color: #bcbcbc; }
 .start-actions { width: 100%; max-width: 640rpx; margin: 44rpx auto 0; }
 .start-btn {
   width: 100%; padding: 30rpx; border-radius: 28rpx; border: none;

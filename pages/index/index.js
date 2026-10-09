@@ -34,11 +34,12 @@ Page({
     const s = store.getSession()
     if (!s || !s.familyId) return
     const now = new Date()
-    const month = now.getFullYear() + '-' + fmt.pad2(now.getMonth() + 1)
+    const ym = now.getFullYear() + '-' + fmt.pad2(now.getMonth() + 1)
     const WEEK = ['日', '一', '二', '三', '四', '五', '六']
+    const [curY, curM] = ym.split('-')
     Promise.all([
       api.getFamily(s.familyId),
-      api.getStats({ period: 'month', month }),
+      api.getStats({ period: 'month', year: Number(curY), month: Number(curM) }),
       api.getTransactions({ start: fmt.addDays(fmt.today(), -4), end: fmt.today(), size: 200 })
     ]).then(([fam, stats, txRes]) => {
       const txs = txRes.list
@@ -52,14 +53,14 @@ Page({
       const recent = Object.keys(map).sort().reverse().map(date => {
         const p = date.split('-')
         const d = new Date(date + 'T00:00:00')
-        const items = map[date].sort((a, b) => a.created_at < b.created_at ? 1 : -1)
+        const items = map[date].sort((a, b) => a.createdAt < b.createdAt ? 1 : -1)
         let exp = 0, inc = 0
         items.forEach(t => {
           t.type === 'income' ? inc += t.amount : exp += t.amount
           t.amountText = fmt.formatMoney(t.amount)
           t.typeCls = t.type === 'income' ? 'income' : 'expense'
           t.sign = t.type === 'income' ? '+' : '-'
-          const time = t.created_at ? t.created_at.slice(11, 16) : ''
+          const time = t.createdAt ? t.createdAt.slice(11, 16) : ''
           t.sub = [t.note || '无备注', t.nickname, time].filter(Boolean).join(' · ')
         })
         const bal = inc - exp
@@ -93,7 +94,7 @@ Page({
   },
   drawMini(byDay) {
     if (!byDay || !byDay.length) { this.setData({ miniImg: '', miniOn: false }); return }
-    const series = byDay.slice(-30).map(d => ({ value: d.amount, label: d.date.slice(5) }))
+    const series = byDay.slice(-30).map(d => ({ value: d.expense || 0, label: d.date.slice(5) }))
     // canvas 绘制后导出图片展示并移除节点，规避原生组件层浮到 tabBar 上的问题
     this.setData({ miniImg: '', miniOn: true }, () => {
       setTimeout(() => {

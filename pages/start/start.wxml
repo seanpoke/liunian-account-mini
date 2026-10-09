@@ -7,6 +7,12 @@
   </view>
 
   <view class="start-body" wx:if="{{landing}}">
+    <view class="start-nick">
+      <text class="sn-label">你的昵称</text>
+      <input class="sn-input" type="nickname" value="{{nickName}}" maxlength="20"
+        placeholder="给自己取个昵称（可一键填入微信昵称）" placeholder-class="sn-ph"
+        bindinput="onNickInput" />
+    </view>
     <view class="start-actions">
       <view class="start-btn create" bindtap="onCreate">
         <image class="si" src="{{icons.plus}}" mode="aspectFit" />

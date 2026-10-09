@@ -25,11 +25,13 @@ Page({
     hasData: false,
     // 图表：canvas 绘制后导出为图片展示（imgKey），canvas 节点随即移除（xxxCavasOn=false）
     trendImg: '', ringImg: '', barImg: '',
-    trendCanvasOn: false, ringCanvasOn: false, barCanvasOn: false
+    trendCanvasOn: false, ringCanvasOn: false, barCanvasOn: false,
+    sheetVisible: false, sheetEditId: ''
   },
   onLoad() {
     const now = new Date()
     const month = now.getFullYear() + '-' + fmt.pad2(now.getMonth() + 1)
+    const s = store.getSession()
     this.setData({
       statusBarHeight: statusBar(),
       month, monthText: this.formatMonthText(month),
@@ -37,14 +39,15 @@ Page({
       year: now.getFullYear(), years: fmt.yearList(5),
       start: fmt.monthRange(month).start, end: fmt.today()
     })
-    const cats = api.getCategories()
-    this._catColor = {}
-    cats.expense.concat(cats.income).forEach(c => { this._catColor[c.name] = c.color })
+    const fid = s && s.familyId
+    api.getCategories(fid).then((cats) => {
+      this._catColor = {}
+      cats.expense.concat(cats.income).forEach(c => { this._catColor[c.name] = c.color })
+    }).catch(() => {})
     this._memberColor = {}
-    const s = store.getSession()
     if (s && s.familyId) {
       api.getMembers(s.familyId).then(list => {
-        const members = list.filter(m => m.role !== 'pending')
+        const members = list.filter(m => m.status === 'active')
         const memberChips = members.map((m, i) => {
           const color = MEMBER_PALETTE[i % MEMBER_PALETTE.length]
           this._memberColor[m.openid] = color
@@ -62,8 +65,11 @@ Page({
   },
   buildQuery() {
     const q = { period: this.data.period }
-    if (this.data.period === 'month') q.month = this.data.month
-    else if (this.data.period === 'year') q.year = this.data.year
+    if (this.data.period === 'month') {
+      const [y, m] = (this.data.month || '').split('-')
+      q.year = Number(y)
+      q.month = Number(m)
+    } else if (this.data.period === 'year') q.year = this.data.year
     else { q.start = this.data.start; q.end = this.data.end }
     return q
   },
@@ -112,7 +118,7 @@ Page({
       out.income += st.income || 0
       out.expense += st.expense || 0
       ;(st.byCategory || []).forEach(c => { catMap[c.name] = (catMap[c.name] || 0) + c.amount })
-      ;(st.byDay || []).forEach(d => { dayMap[d.date] = (dayMap[d.date] || 0) + d.amount })
+      ;(st.byDay || []).forEach(d => { dayMap[d.date] = (dayMap[d.date] || 0) + (d.expense || 0) })
       ;(st.byMember || []).forEach(m => { memMap[m.openid] = (memMap[m.openid] || 0) + m.amount })
     })
     out.balance = out.income - out.expense
@@ -129,7 +135,7 @@ Page({
   buildTrendSeries(perMember) {
     const maps = perMember.map(p => {
       const m = {}
-      ;(p.byDay || []).forEach(d => { m[d.date] = (m[d.date] || 0) + d.amount })
+      ;(p.byDay || []).forEach(d => { m[d.date] = (m[d.date] || 0) + (d.expense || 0) })
       return m
     })
     const set = {}
@@ -180,7 +186,7 @@ Page({
       this.renderChart('trendCanvas', 'trendImg', (ctx, w, h) => charts.drawTrendMulti(ctx, w, h, t.labels, t.lines))
     } else {
       this.setData({ trendLegend: [] })
-      let series = stats.byDay.map(d => ({ value: d.amount, label: d.date.slice(5) }))
+      let series = stats.byDay.map(d => ({ value: d.expense || 0, label: d.date.slice(5) }))
       if (series.length > 40) {
         const m = {}
         stats.byDay.forEach(d => { const k = d.date.slice(0, 7); m[k] = (m[k] || 0) + d.amount })
@@ -228,5 +234,18 @@ Page({
   onFilterAll() {
     const memberChips = this.data.memberChips.map(c => Object.assign({}, c, { on: false }))
     this.setData({ filterMembers: [], memberChips }, () => this.load())
+  },
+  // 底部「＋」记账弹层（与首页/明细一致的就地弹层效果）
+  showRecordSheet(id) {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: true })
+    this.setData({ sheetVisible: true, sheetEditId: id || '' })
+  },
+  onSheetClose() {
+    this.setData({ sheetVisible: false })
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: false })
+  },
+  onSheetSaved() {
+    this.setData({ sheetVisible: false }); this.load()
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: false })
   }
 })

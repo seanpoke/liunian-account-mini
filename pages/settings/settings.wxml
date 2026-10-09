@@ -131,4 +131,6 @@
 
     <button class="icancel" bindtap="closeInvite">取消</button>
   </view>
+
+  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
 </view>

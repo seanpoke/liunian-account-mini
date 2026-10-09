@@ -11,6 +11,14 @@ function statusBar() {
   return info.safeArea ? info.safeArea.top : (info.statusBarHeight || 20)
 }
 
+// 由文档 §8 的 expireAt(ISO) 推导剩余有效天数；后端若直接返回 expireDays 则优先使用
+function expireDaysAt(expireAt) {
+  if (!expireAt) return 7
+  const t = new Date(String(expireAt).replace(' ', 'T')).getTime()
+  if (isNaN(t)) return 7
+  return Math.max(1, Math.round((t - Date.now()) / 86400000))
+}
+
 // 原型中的线条图标（小程序不支持内联 svg，用 image + data-uri 还原）
 function svgUri(svg) {
   const bytes = new Uint8Array(svg.length)
@@ -39,7 +47,8 @@ Page({
     qrMeta: { expireDays: 7, memberLimit: 10 },
     iconHouse: ICONS.house,
     iconShare: ICONS.share,
-    iconCircle: ICONS.circle
+    iconCircle: ICONS.circle,
+    sheetVisible: false, sheetEditId: ''
   },
   onLoad() {
     this.setData({ statusBarHeight: statusBar() })
@@ -67,6 +76,8 @@ Page({
     const p1 = api.getMembers(s.familyId)
     const p2 = s.role === 'owner' ? api.getPending(s.familyId).catch(() => []) : Promise.resolve([])
     Promise.all([p1, p2]).then(([list, pend]) => {
+      const owner = list.find(m => m.role === 'owner')
+      const ownerName = owner ? owner.nickname : ''
       const members = list.filter(m => m.status === 'active').map(m => {
         const isSelf = m.openid === s.openid
         const jd = m.joinedAt ? m.joinedAt.slice(0, 10) : ''
@@ -86,14 +97,13 @@ Page({
         return Object.assign({}, p, {
           initial: (p.nickname || '?').slice(0, 1),
           bg: fmt.avGrad(p.color || '#bfbfbf'),
-          sub: '来自「' + (p.inviterNickname || '家人') + '」的邀请 · ' + when
+          sub: '来自「' + (ownerName || '家人') + '」的邀请 · ' + when
         })
       })
       const monthCount = members.reduce((a, m) => a + (m.monthCount || 0), 0)
-      const owner = members.find(m => m.role === 'owner')
       this.setData({
         members, pending: pendList, memberCount: members.length, monthCount,
-        ownerName: owner ? owner.nickname : ''
+        ownerName
       })
     }).catch(() => {})
   },
@@ -230,8 +240,8 @@ Page({
       this.setData({
         inviteShow: true, inviteTab: 'share', inviteSent: false,
         shareToken: share.token, qrToken: qr.token, qrImageUrl: qr.qrImageUrl || '',
-        shareMeta: { expireDays: share.expireDays || 1 },
-        qrMeta: { expireDays: qr.expireDays || 7, memberLimit: qr.memberLimit || 10 }
+        shareMeta: { expireDays: share.expireDays != null ? share.expireDays : expireDaysAt(share.expireAt) },
+        qrMeta: { expireDays: qr.expireDays != null ? qr.expireDays : expireDaysAt(qr.expireAt), memberLimit: qr.memberLimit || 10 }
       })
       if (typeof this.getTabBar === 'function' && this.getTabBar()) {
         this.getTabBar().setData({ hidden: true })
@@ -303,5 +313,18 @@ Page({
       return { title: '「流年小账」邀请你一起记账', path: '/pages/invite/invite?token=' + this._shareToken }
     }
     return { title: '流年小账', path: '/pages/start/start' }
+  },
+  // 底部「＋」记账弹层（与首页/明细一致的就地弹层效果）
+  showRecordSheet(id) {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: true })
+    this.setData({ sheetVisible: true, sheetEditId: id || '' })
+  },
+  onSheetClose() {
+    this.setData({ sheetVisible: false })
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: false })
+  },
+  onSheetSaved() {
+    this.setData({ sheetVisible: false }); this.load(); this.loadMembers()
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: false })
   }
 })

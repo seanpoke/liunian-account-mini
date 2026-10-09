@@ -11,7 +11,7 @@ Page({
     this.setData({
       nickname: s.nickname || '我',
       initial: (s.nickname || '?').slice(0, 1),
-      bg: fmt.avGrad(s.color || '#07C160'),
+      bg: fmt.avGrad('#07C160'),
       roleText: s.role === 'owner' ? '家庭创建者' : '家庭成员'
     })
   },

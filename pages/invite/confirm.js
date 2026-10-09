@@ -47,8 +47,8 @@ Page({
           familyName: d.familyName,
           familyInitial: (d.familyName || '账').slice(0, 1),
           inviterNickname: d.inviterNickname,
-          inviterInitial: d.inviterInitial,
-          inviterBg: fmt.avGrad(d.inviterColor || '#07C160')
+          inviterInitial: (d.inviterNickname || '?').slice(0, 1),
+          inviterBg: fmt.avGrad('#07C160')
         })
         this.loadMembers()
       })
