@@ -39,6 +39,9 @@
   color: #07C160;
   font-weight: 600;
 }
+/* 中间加号(116rpx)骑缝悬浮，明细/统计各向两侧让位，避免被加号压住 */
+.tab:nth-child(2) { margin-right: 64rpx; }
+.tab:nth-child(3) { margin-left: 64rpx; }
 /* 加号圆钮：中心正骑在栏的上边缘（112rpx 栏，104rpx 钮，bottom = 112 - 52 = 60rpx） */
 .fab {
   position: absolute;

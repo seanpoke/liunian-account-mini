@@ -80,6 +80,26 @@
 }
 .press { opacity: .85; }
 
+/* 多家庭选择列表 */
+.fam-pick { margin-bottom: 40rpx; }
+.fp-title { font-size: 28rpx; color: #9a9a9a; margin: 0 8rpx 20rpx; }
+.fp-item {
+  display: flex; align-items: center; gap: 24rpx;
+  background: #fff; border-radius: 28rpx; padding: 28rpx 32rpx;
+}
+.fp-item + .fp-item { margin-top: 20rpx; }
+.fp-item:active { background: #fafafa; }
+.fp-av {
+  width: 84rpx; height: 84rpx; border-radius: 26rpx; flex: none;
+  background: linear-gradient(135deg, #07C160, #0aa85a);
+  color: #fff; font-size: 34rpx; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.fp-info { flex: 1; min-width: 0; }
+.fp-name { font-size: 31rpx; font-weight: 600; }
+.fp-sub { font-size: 23rpx; color: #9a9a9a; margin-top: 8rpx; }
+.fp-chev { color: #cfcfcf; font-size: 34rpx; }
+
 .loading-mask {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.6);
   display: flex; align-items: center; justify-content: center; z-index: 50;

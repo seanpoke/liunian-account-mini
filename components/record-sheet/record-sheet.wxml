@@ -10,7 +10,7 @@
     </view>
 
     <view class="amount-wrap">
-      <input class="amount-input" type="digit" placeholder="0.00" placeholder-class="amount-ph" value="{{amountText}}" bindinput="onAmount" focus="{{shown && !editId}}" adjust-position="{{false}}" />
+      <input class="amount-input" type="digit" placeholder="0.00" placeholder-class="amount-ph" value="{{amountText}}" bindinput="onAmount" adjust-position="{{false}}" />
     </view>
 
     <view class="cat-grid">

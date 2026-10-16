@@ -69,13 +69,13 @@ const api = {
   approveMember: (familyId, memberId) => request('POST', '/family/' + familyId + '/member/' + memberId + '/approve'),
   rejectMember: (familyId, memberId) => request('POST', '/family/' + familyId + '/member/' + memberId + '/reject'),
 
-  createTransaction: (payload) => request('POST', '/transaction', { data: payload }),
+  createTransaction: (payload) => request('POST', '/transaction', { data: Object.assign({ familyId: currentFamilyId() }, payload) }),
   updateTransaction: (id, payload) => request('PUT', '/transaction/' + id, { data: payload }),
   deleteTransaction: (id) => request('DELETE', '/transaction/' + id),
   getTransaction: (id) => request('GET', '/transaction/' + id),
-  getTransactions: (query) => request('GET', '/transactions', { query }),
+  getTransactions: (query) => request('GET', '/transactions', { query: Object.assign({ familyId: currentFamilyId() }, query) }),
 
-  getStats: (query) => request('GET', '/stats', { query }),
+  getStats: (query) => request('GET', '/stats', { query: Object.assign({ familyId: currentFamilyId() }, query) }),
 
   getMembers: (familyId) => request('GET', '/family/' + familyId + '/members'),
   removeMember: (familyId, memberId) => request('DELETE', '/family/' + familyId + '/member/' + memberId),
@@ -99,8 +99,10 @@ const api = {
   }),
 
   health: () => request('GET', '/health'),
+  getFamilies: () => request('GET', '/families'),
+  dissolveFamily: (familyId) => request('POST', '/family/' + familyId + '/dissolve'),
   deleteCategory: (id) => request('DELETE', '/category/' + id),
-  getTransactionsByDay: (query) => request('GET', '/transactions/by-day', { query }),
+  getTransactionsByDay: (query) => request('GET', '/transactions/by-day', { query: Object.assign({ familyId: currentFamilyId() }, query) }),
   getPrivacy: () => request('GET', '/user/privacy'),
   submitPrivacy: (agreed) => request('POST', '/user/privacy', { data: { agreed } })
 }

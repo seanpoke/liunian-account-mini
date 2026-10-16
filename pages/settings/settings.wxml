@@ -57,6 +57,10 @@
         <view class="lbl">退出家庭</view>
         <text class="chev">›</text>
       </view>
+      <view wx:if="{{isOwner}}" class="srow" bindtap="tapDissolve">
+        <view class="lbl danger">解散家庭</view>
+        <text class="chev">›</text>
+      </view>
       <view class="srow" bindtap="goPrivacy">
         <view class="lbl">隐私政策</view>
         <text class="chev">›</text>

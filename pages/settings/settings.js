@@ -197,18 +197,42 @@ Page({
       }
     })
   },
+  // 退出家庭：所有成员均可退出（接口文档 §16）
+  // 普通成员退出→保留历史账单；创建者退出→自动转让给最早加入成员；仅剩本人→整户解散
   tapQuit() {
-    if (this.data.isOwner) {
-      wx.showToast({ title: '请先转让创建者再退出', icon: 'none' })
-      return
-    }
+    const alone = this.data.memberCount <= 1
+    const content = this.data.isOwner
+      ? (alone
+        ? '家庭仅你一人，退出后该家庭及全部账单数据将被删除，不可恢复'
+        : '你是创建者，退出后创建者身份将自动转让给最早加入的成员，历史账单保留')
+      : '退出后你将无法查看该账本（你的历史记录保留），需重新被邀请才能加入'
     wx.showModal({
-      title: '退出家庭', content: '退出后你将无法查看账本，需重新被邀请',
+      title: '退出家庭', content,
       success: (r) => {
         if (!r.confirm) return
         api.quitFamily(store.getSession().familyId)
-          .then(() => flow.ensureLogin())
-          .then(() => { wx.showToast({ title: '已退出', icon: 'success' }); setTimeout(() => flow.routeAfterLogin(), 500) })
+          .then(() => {
+            wx.showToast({ title: '已退出', icon: 'success' })
+            setTimeout(() => wx.reLaunch({ url: '/pages/start/start' }), 600)
+          })
+          .catch((e) => wx.showToast({ title: e.message, icon: 'none' }))
+      }
+    })
+  },
+  // 解散家庭：仅创建者（接口文档 §36），删除家庭及全部关联数据
+  tapDissolve() {
+    if (!this.data.isOwner) { wx.showToast({ title: '仅创建者可解散家庭', icon: 'none' }); return }
+    wx.showModal({
+      title: '解散家庭',
+      content: '解散后「' + (this.data.familyName || '该家庭') + '」的全部账单、成员、邀请、分类与预算数据将被永久删除，不可恢复。确定解散？',
+      confirmColor: '#fa5151',
+      success: (r) => {
+        if (!r.confirm) return
+        api.dissolveFamily(store.getSession().familyId)
+          .then(() => {
+            wx.showToast({ title: '已解散', icon: 'success' })
+            setTimeout(() => wx.reLaunch({ url: '/pages/start/start' }), 600)
+          })
           .catch((e) => wx.showToast({ title: e.message, icon: 'none' }))
       }
     })

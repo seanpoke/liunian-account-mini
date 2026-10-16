@@ -6,7 +6,21 @@
     <view class="start-sub">和家人们一起，把每天的收支记清楚，随时查看家庭账本。</view>
   </view>
 
-  <view class="start-body" wx:if="{{landing}}">
+  <view class="start-body" wx:if="{{landing || famList.length}}">
+    <!-- 多家庭选择（/families 返回多个时展示） -->
+    <view wx:if="{{famList.length}}" class="fam-pick">
+      <view class="fp-title">选择要进入的家庭</view>
+      <view class="fp-item" wx:for="{{famList}}" wx:key="familyId" data-id="{{item.familyId}}" bindtap="tapFamily">
+        <view class="fp-av">{{item.initial}}</view>
+        <view class="fp-info">
+          <view class="fp-name">{{item.name}}</view>
+          <view class="fp-sub">{{item.sub}}</view>
+        </view>
+        <text class="fp-chev">›</text>
+      </view>
+    </view>
+
+    <block wx:if="{{landing}}">
     <view class="start-nick">
       <text class="sn-label">你的昵称</text>
       <input class="sn-input" type="nickname" value="{{nickName}}" maxlength="20"
@@ -24,6 +38,7 @@
       </view>
     </view>
     <view class="start-note" style="white-space:pre-wrap;">加入家庭需由家人在 App 内分享邀请卡片，\n你提交申请后由创建者确认。</view>
+    </block>
   </view>
 
   <view class="loading-mask" wx:if="{{loading}}">

@@ -58,6 +58,7 @@
 .srow { display: flex; align-items: center; padding: 30rpx 32rpx; font-size: 30rpx; position: relative; }
 .srow + .srow::before { content: ''; position: absolute; left: 32rpx; right: 0; top: 0; height: 2rpx; background: #ececec; }
 .srow:active { background: #fafafa; }
+.lbl.danger { color: #fa5151; }
 .srow .lbl { flex: 1; }
 .srow .val { font-size: 26rpx; color: #9a9a9a; margin-right: 12rpx; }
 .srow .chev { color: #cfcfcf; font-size: 34rpx; line-height: 1; }

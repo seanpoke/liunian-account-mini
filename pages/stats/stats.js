@@ -32,6 +32,9 @@ Page({
     const now = new Date()
     const month = now.getFullYear() + '-' + fmt.pad2(now.getMonth() + 1)
     const s = store.getSession()
+    // 同步初始化颜色映射，避免统计接口先于分类接口返回时读到 undefined
+    this._catColor = {}
+    this._memberColor = {}
     this.setData({
       statusBarHeight: statusBar(),
       month, monthText: this.formatMonthText(month),

@@ -33,8 +33,9 @@ view, text { box-sizing: border-box; }
 }
 .pad { padding: 24rpx; }
 .pad-lg { padding: 32rpx; }
-/* tab 页底部占位：tabBar 112rpx + 悬浮加号上半截 + 安全区，防止内容钻到栏后与加号重叠 */
-.tab-clear { height: calc(190rpx + env(safe-area-inset-bottom)); }
+/* tab 页底部占位：悬浮加号 FAB 高 116rpx、bottom:60rpx → 顶沿在屏幕底上方 176rpx。
+   440rpx 让最后一条内容底沿落在 FAB 顶沿之上约 264rpx，留足空白带，彻底避免明细/统计内容误触中央「＋」。 */
+.tab-clear { height: calc(440rpx + env(safe-area-inset-bottom)); }
 
 /* 卡片 */
 .card {

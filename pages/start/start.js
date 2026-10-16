@@ -27,6 +27,7 @@ Page({
     createName: '',
     creating: false,
     inputFocused: false,
+    famList: [],
     icons: ICONS
   },
   onLoad() {
@@ -53,14 +54,41 @@ Page({
   enter() {
     this.setData({ loading: true })
     flow.ensureLogin(this.loginExtra())
-      .then((s) => {
-        if (s.isMember && s.familyId) {
-          flow.routeAfterLogin()
-        } else {
-          this.setData({ landing: true, loading: false })
-        }
-      })
+      .then(() => this.routeByFamilies())
       .catch(() => this.setData({ landing: true, loading: false }))
+  },
+  // 首次进入统一路由：查 /families —— 0 个→落地页；1 个→直接进入；多个→列表选择（接口文档 §35）
+  routeByFamilies() {
+    return api.getFamilies().then((list) => {
+      list = list || []
+      if (!list.length) {
+        this.setData({ landing: true, loading: false })
+        return
+      }
+      if (list.length === 1) {
+        this.pickFamily(list[0].familyId)
+        return
+      }
+      this.setData({
+        loading: false,
+        famList: list.map((f) => Object.assign({}, f, {
+          initial: (f.name || '?').slice(0, 1),
+          sub: (f.memberCount || 0) + ' 位成员' + (f.role === 'owner' ? ' · 我是创建者' : '')
+        }))
+      })
+    }).catch(() => this.setData({ landing: true, loading: false }))
+  },
+  // 选定家庭：写入会话后进入账本
+  pickFamily(fid) {
+    const s = store.getSession() || {}
+    store.setSession(Object.assign({}, s, { isMember: true, familyId: fid }))
+    flow.routeAfterLogin()
+  },
+  tapFamily(e) {
+    const fid = e.currentTarget.dataset.id
+    if (!fid) return
+    this.setData({ loading: true })
+    this.pickFamily(fid)
   },
   onAgreePrivacy() {
     store.setPrivacyAgreed(true)
