@@ -314,17 +314,24 @@ Page({
       })
     }
     if (url.indexOf('data:image') === 0) {
-      const match = url.match(/^data:image\/svg\+xml;base64,(.*)/)
-      if (match) {
-        const fs = wx.getFileSystemManager()
-        const filePath = wx.env.USER_DATA_PATH + '/qr_' + Date.now() + '.svg'
-        fs.writeFile({
-          filePath, data: match[1], encoding: 'base64',
-          success: () => save(filePath),
-          fail: () => wx.showToast({ title: '演示二维码不支持保存', icon: 'none' })
-        })
+      const m = url.match(/^data:image\/(png|jpe?g|svg\+xml);base64,(.*)/)
+      if (!m) { wx.showToast({ title: '二维码格式不支持保存', icon: 'none' }); return }
+      const type = m[1]
+      const b64 = m[2]
+      // 该 data URI 实际可能是 JPEG 体（头部 /9j/），按内容推断真实扩展名，避免保存后打不开
+      const realExt = /^(\/9j\/|ffd8ff)/i.test(b64) ? 'jpg' : (type.indexOf('svg') > -1 ? 'svg' : 'png')
+      if (realExt === 'svg') {
+        wx.showToast({ title: '演示二维码不支持保存', icon: 'none' })
         return
       }
+      const fs = wx.getFileSystemManager()
+      const filePath = wx.env.USER_DATA_PATH + '/qr_' + Date.now() + '.' + realExt
+      fs.writeFile({
+        filePath, data: b64, encoding: 'base64',
+        success: () => save(filePath),
+        fail: () => wx.showToast({ title: '保存失败', icon: 'none' })
+      })
+      return
     }
     wx.downloadFile({
       url,

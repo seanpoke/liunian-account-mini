@@ -12,7 +12,7 @@
 // const DEFAULT_API_BASE = 'http://10.8.2.83:8445/api'
 
 // 生产环境
-const DEFAULT_API_BASE = 'http://sean.ltd:8445/api'
+const DEFAULT_API_BASE = 'https://sean.ltd/api'
 
 // 是否走本地 mock（开发联调后端未就绪时设为 true；接入真实后端设为 false）
 const ENABLE_MOCK = false
