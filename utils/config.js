@@ -8,8 +8,8 @@
 //     即可覆盖；清空覆盖：wx.removeStorageSync('liunian_api_base')。
 //   - 生产环境请把 DEFAULT_API_BASE 改为已备案域名（如 https://api.<你的域名>/api）。
 
-// 当前开发环境
-const DEFAULT_API_BASE = 'http://10.8.2.83:8445/api'
+// 当前生产环境（已备案域名，HTTPS）
+const DEFAULT_API_BASE = 'https://sean.ltd/api'
 
 // 是否走本地 mock（开发联调后端未就绪时设为 true；接入真实后端设为 false）
 const ENABLE_MOCK = false
