@@ -25,10 +25,13 @@
 .record-page.show .record-sheet { transform: translateY(0); }
 .record-page.closing .record-sheet { transform: translateY(100%); }
 
-/* 顶部拖拽指示条 */
+/* 顶部拖拽指示条（扩大触摸热区，支持下拉关闭） */
 .sheet-handle {
-  width: 72rpx; height: 8rpx; border-radius: 4rpx; background: #ddd;
-  margin: 0 auto 28rpx;
+  height: 56rpx; margin: 0 -32rpx 12rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+.sheet-handle::after {
+  content: ''; width: 72rpx; height: 8rpx; border-radius: 4rpx; background: #ddd;
 }
 
 /* 收/支 切换 */
@@ -60,7 +63,7 @@
   display: flex; align-items: center; justify-content: center;
   background: #f2f3f5; color: #555;
 }
-.cat-ic.sel { background: var(--brand); color: #fff; }
+.cat-ic.sel { background: var(--brand-soft); color: var(--brand); border: 2rpx solid var(--brand); }
 .cat-name { font-size: 24rpx; margin-top: 12rpx; color: #646a73; }
 .cat-name.sel { color: #1a1a1a; font-weight: 600; }
 

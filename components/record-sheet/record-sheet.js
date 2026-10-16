@@ -17,7 +17,8 @@ Component({
     selectedCatId: '',
     date: '',
     note: '',
-    saving: false
+    saving: false,
+    dragY: 0
   },
   lifetimes: {
     attached() {
@@ -31,7 +32,7 @@ Component({
   methods: {
     onVisible(val) {
       if (val) {
-        this.setData({ shown: true, closing: false })
+        this.setData({ shown: true, closing: false, dragY: 0 })
         // 进入编辑模式
         if (this.data.editId) this.loadEdit(this.data.editId)
         else this.resetForm()
@@ -96,6 +97,30 @@ Component({
     onBackdropTap() {
       if (this.data.saving) return
       this.close()
+    },
+    // 下拉把手关闭：拖动跟手，松手超过阈值关闭，否则回弹
+    onDragStart(e) {
+      if (this.data.saving) return
+      this._dragStartY = e.touches[0].clientY
+      this._dragging = true
+    },
+    onDragMove(e) {
+      if (!this._dragging) return
+      const dy = Math.max(0, e.touches[0].clientY - this._dragStartY)
+      this._dragY = dy
+      this.setData({ dragY: dy })
+    },
+    onDragEnd() {
+      if (!this._dragging) return
+      this._dragging = false
+      const dy = this._dragY || 0
+      this._dragY = 0
+      if (dy > 100) {
+        this.setData({ dragY: 0 })
+        this.close()
+      } else {
+        this.setData({ dragY: 0 })
+      }
     },
     stop() {}
   }

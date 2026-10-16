@@ -1,8 +1,8 @@
 <!-- components/record-sheet/record-sheet.wxml —— 底部滑出记账弹层（原型 .mask + .sheet） -->
 <view class="record-page {{shown ? 'show' : ''}} {{closing ? 'closing' : ''}}" catchtap="onBackdropTap">
   <view class="record-backdrop"></view>
-  <view class="record-sheet" catchtap="stop">
-    <view class="sheet-handle"></view>
+  <view class="record-sheet" catchtap="stop" style="{{dragY > 0 ? 'transform: translateY(' + dragY + 'px); transition: none;' : ''}}">
+    <view class="sheet-handle" catchtouchstart="onDragStart" catchtouchmove="onDragMove" catchtouchend="onDragEnd" catchtouchcancel="onDragEnd"></view>
 
     <view class="type-switch">
       <view class="type-opt {{type === 'expense' ? 'on-expense' : ''}}" data-type="expense" bindtap="switchType">支出</view>
@@ -10,7 +10,7 @@
     </view>
 
     <view class="amount-wrap">
-      <input class="amount-input" type="digit" placeholder="0.00" placeholder-class="amount-ph" value="{{amountText}}" bindinput="onAmount" focus="{{shown && !editId}}" />
+      <input class="amount-input" type="digit" placeholder="0.00" placeholder-class="amount-ph" value="{{amountText}}" bindinput="onAmount" focus="{{shown && !editId}}" adjust-position="{{false}}" />
     </view>
 
     <view class="cat-grid">
@@ -30,7 +30,7 @@
       <view class="info-line"></view>
       <view class="info-row">
         <text class="info-label">备注</text>
-        <input class="note-input" placeholder="写点什么…" value="{{note}}" bindinput="onNote" />
+        <input class="note-input" placeholder="写点什么…" value="{{note}}" bindinput="onNote" adjust-position="{{false}}" />
       </view>
     </view>
 
