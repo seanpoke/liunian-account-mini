@@ -93,34 +93,9 @@
   <view class="i-mask {{inviteShow ? 'show' : ''}}" bindtap="closeInvite"></view>
   <view class="i-sheet {{inviteShow ? 'show' : ''}}">
     <view class="ih">邀请家人一起记账</view>
-    <view class="ih-sub">发送给微信好友，或生成二维码让家人面对面扫码加入</view>
+    <view class="ih-sub">生成二维码，让家人面对面扫码加入</view>
 
-    <view class="inv-tabs">
-      <view class="inv-tab {{inviteTab === 'share' ? 'on' : ''}}" data-tab="share" bindtap="switchInviteTab">分享给好友</view>
-      <view class="inv-tab {{inviteTab === 'qr' ? 'on' : ''}}" data-tab="qr" bindtap="switchInviteTab">面对面扫码</view>
-    </view>
-
-    <view wx:if="{{inviteTab === 'share'}}" class="i-body">
-      <view class="wx-card {{inviteSent ? 'sent' : ''}}">
-        <view class="wx-top">
-          <view class="wx-logo"><image class="wx-logo-ic" src="{{iconShare}}" mode="aspectFit" /></view>
-          <view class="wx-txt">
-            <view class="wx-t">{{familyName}}</view>
-            <view class="wx-d">{{nickname}} 邀请你加入家庭账本</view>
-          </view>
-          <view class="wx-thumb">¥</view>
-        </view>
-        <view class="wx-foot">
-          <image class="wx-foot-ic" src="{{iconCircle}}" mode="aspectFit" />小程序
-        </view>
-      </view>
-
-      <button class="btn-green" bindtap="sendInvite">{{inviteSent ? '✓ 已发送，等待对方同意' : '发送给微信好友'}}</button>
-      <button class="btn-ghost" bindtap="copyInviteLink">复制邀请链接</button>
-      <view class="i-tip">链接 {{shareMeta.expireDays * 24}} 小时内有效 · 仅可使用一次 · 可在本页撤销</view>
-    </view>
-
-    <view wx:if="{{inviteTab === 'qr'}}" class="i-body">
+    <view class="i-body">
       <view class="qr-box">
         <image class="qr-img" src="{{qrImageUrl}}" mode="aspectFit"></image>
         <view class="qr-label">让家人用微信「扫一扫」加入</view>
@@ -128,9 +103,8 @@
       </view>
       <view class="qr-row">
         <button class="btn-green" bindtap="saveQr">保存到相册</button>
-        <button class="btn-ghost" bindtap="copyInviteLink">复制邀请链接</button>
       </view>
-      <view class="i-tip">面对面扫码与分享卡片等效，均进入「提交加入申请」流程</view>
+      <view class="i-tip">面对面扫码进入「提交加入申请」流程</view>
     </view>
 
     <button class="icancel" bindtap="closeInvite">取消</button>

@@ -1,6 +1,6 @@
 <!-- pages/invite/confirm.wxml —— 严格对照 doc/邀请确认页落地动效.html 五个阶段 -->
 <view class="page">
-  <navigation-bar title="加入家庭" back="{{true}}" color="black" background="#ffffff"></navigation-bar>
+  <navigation-bar title="加入家庭" back="{{true}}" bindback="backHome" color="black" background="#ffffff"></navigation-bar>
   <view class="page-body">
 
     <!-- 阶段①：校验中 loader 全屏覆盖 -->
@@ -51,6 +51,12 @@
             </view>
             <view class="members-line">已有 <text class="b">{{memberCount}}</text> 位成员一起记账</view>
           </view>
+
+          <view class="nick-field">
+            <text class="nick-label">你的昵称</text>
+            <input class="nick-input" type="nickname" placeholder="点此可一键使用微信昵称" value="{{applyNickname}}" bindinput="onApplyNickInput" maxlength="20" />
+          </view>
+          <view class="nick-tip">昵称为必填项，点击输入框上方「使用微信昵称」即可自动填充</view>
 
           <view class="btn-green {{loading ? 'disabled' : ''}}" bindtap="submitApply">
             <text wx:if="{{!loading}}">提交加入申请</text>

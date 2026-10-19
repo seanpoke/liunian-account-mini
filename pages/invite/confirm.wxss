@@ -3,6 +3,15 @@
 /* 整页背景强制白色，避免跟灰色按钮融为一体 */
 .page { background: #fff; }
 
+/* 申请页昵称输入 */
+.nick-field {
+  display: flex; align-items: center; gap: 20rpx;
+  background: #f6f7f9; border-radius: 18rpx; padding: 24rpx 28rpx; margin: 24rpx 0 8rpx;
+}
+.nick-label { font-size: 28rpx; color: #333; flex: none; }
+.nick-input { flex: 1; font-size: 28rpx; color: #111; }
+.nick-tip { font-size: 22rpx; color: #999; margin: 4rpx 4rpx 0; }
+
 /* 阶段① loader 全屏覆盖 */
 .loader-mask {
   position: fixed; left: 0; right: 0; top: 0; bottom: 0;

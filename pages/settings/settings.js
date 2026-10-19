@@ -40,10 +40,7 @@ Page({
     sheetMember: SHEET_EMPTY,
     sheetActions: { editSelf: false, transfer: false, remove: false, note: false },
     inviteShow: false,
-    inviteTab: 'share',
-    inviteSent: false,
-    shareToken: '', qrToken: '', qrImageUrl: '',
-    shareMeta: { expireDays: 1 },
+    qrToken: '', qrImageUrl: '',
     qrMeta: { expireDays: 7, memberLimit: 10 },
     iconHouse: ICONS.house,
     iconShare: ICONS.share,
@@ -254,18 +251,15 @@ Page({
     const s = store.getSession()
     if (!s || !s.familyId) return
     wx.showLoading({ title: '生成中' })
-    Promise.all([
-      api.createInvitation(s.familyId, 'share'),
-      api.createInvitation(s.familyId, 'qr')
-    ]).then(([share, qr]) => {
+    // type=qr：返回小程序码 qrImageUrl（当前仅支持扫码加入，不返回 urlLink）
+    api.createInvitation(s.familyId, 'qr').then((d) => {
       wx.hideLoading()
-      this._shareToken = share.token
-      this._qrToken = qr.token
+      this._shareToken = d.token
+      const expireDays = d.expireDays != null ? d.expireDays : expireDaysAt(d.expireAt)
       this.setData({
-        inviteShow: true, inviteTab: 'share', inviteSent: false,
-        shareToken: share.token, qrToken: qr.token, qrImageUrl: qr.qrImageUrl || '',
-        shareMeta: { expireDays: share.expireDays != null ? share.expireDays : expireDaysAt(share.expireAt) },
-        qrMeta: { expireDays: qr.expireDays != null ? qr.expireDays : expireDaysAt(qr.expireAt), memberLimit: qr.memberLimit || 10 }
+        inviteShow: true,
+        qrToken: d.token, qrImageUrl: d.qrImageUrl || '',
+        qrMeta: { expireDays, memberLimit: d.memberLimit || 10 }
       })
       if (typeof this.getTabBar === 'function' && this.getTabBar()) {
         this.getTabBar().setData({ hidden: true })
@@ -275,27 +269,11 @@ Page({
       wx.showToast({ title: e.message, icon: 'none' })
     })
   },
-  switchInviteTab(e) {
-    this.setData({ inviteTab: e.currentTarget.dataset.tab })
-  },
   closeInvite() {
     this.setData({ inviteShow: false })
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ hidden: false })
     }
-  },
-  sendInvite() {
-    if (this.data.inviteSent) { this.closeInvite(); return }
-    this.setData({ inviteSent: true })
-    wx.showToast({ title: '邀请卡片已发送给微信好友', icon: 'success' })
-    setTimeout(() => this.closeInvite(), 1700)
-  },
-  copyInviteLink() {
-    const token = this.data.inviteTab === 'share' ? this.data.shareToken : this.data.qrToken
-    wx.setClipboardData({
-      data: '/pages/invite/invite?token=' + token,
-      success: () => wx.showToast({ title: '已复制', icon: 'success' })
-    })
   },
   saveQr() {
     const url = this.data.qrImageUrl
