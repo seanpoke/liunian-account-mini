@@ -60,7 +60,7 @@ Component({
       if (cur && typeof cur.showRecordSheet === 'function') {
         cur.showRecordSheet()
       } else {
-        wx.navigateTo({ url: '/pages/record/record' })
+        wx.showToast({ title: '当前页面暂不支持记账', icon: 'none' })
       }
     }
   }

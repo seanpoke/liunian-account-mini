@@ -1,5 +1,6 @@
 // utils/format.js
 // 金额一律以「分」为整数存储；展示与输入均以「元」处理。
+const { getApiBase } = require('./config')
 
 // 分 -> 元（数字，保留两位小数）
 function fenToYuan(fen) {
@@ -92,7 +93,19 @@ function avGrad(color) {
   return g ? 'linear-gradient(135deg,' + g[0] + ',' + g[1] + ')' : (color || '#bbbbbb')
 }
 
+// 图片地址统一处理（对照《前端改造说明》5.2）：
+// - 线上 CDN 返回的 url 是绝对地址（https://images.sean.ltd/...）→ 原样使用；
+// - 本地开发返回 /api/files/... → 用 origin + url 补齐，注意只拼一次 /api；
+// - 历史数据里的相对路径、data URI 也都兼容。
+function imgUrl(u) {
+  if (!u) return ''
+  if (/^(https?:)?\/\//i.test(u) || u.indexOf('data:') === 0) return u
+  const base = getApiBase().replace(/\/+$/, '')
+  const origin = base.replace(/\/api$/i, '')
+  return u.charAt(0) === '/' ? origin + u : base + '/' + u
+}
+
 module.exports = {
   fenToYuan, formatMoney, yuanToFen, pad2, fmtDate, today, addDays,
-  monthRange, monthList, yearList, fmtTime, friendDate, avGrad
+  monthRange, monthList, yearList, fmtTime, friendDate, avGrad, imgUrl
 }

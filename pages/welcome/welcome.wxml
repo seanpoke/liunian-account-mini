@@ -7,7 +7,10 @@
 
     <view class="avatars">
       <block wx:if="{{avatars.length}}">
-        <view wx:for="{{avatars}}" wx:key="initial" class="sa" style="background:{{item.color}};margin-left:{{index === 0 ? 0 : '-20rpx'}};">{{item.initial}}</view>
+        <block wx:for="{{avatars}}" wx:key="openid">
+          <image wx:if="{{item.url}}" class="sa" src="{{item.url}}" mode="aspectFill" style="margin-left:{{index === 0 ? 0 : '-20rpx'}};" />
+          <view wx:else class="sa" style="background:{{item.color}};margin-left:{{index === 0 ? 0 : '-20rpx'}};">{{item.initial}}</view>
+        </block>
       </block>
       <block wx:else>
         <view class="sa" style="background:var(--brand);">家</view>

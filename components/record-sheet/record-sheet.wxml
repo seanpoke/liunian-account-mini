@@ -1,23 +1,19 @@
-<!-- components/record-sheet/record-sheet.wxml —— 底部滑出记账弹层（原型 .mask + .sheet） -->
+<!-- components/record-sheet/record-sheet.wxml —— 底部滑出记账表单（分类由全屏分类页选好后带入） -->
 <view class="record-page {{shown ? 'show' : ''}} {{closing ? 'closing' : ''}}" catchtap="onBackdropTap">
-  <view class="record-backdrop"></view>
+  <view class="record-backdrop" catchtouchmove="preventTouchMove"></view>
   <view class="record-sheet" catchtap="stop" style="{{dragY > 0 ? 'transform: translateY(' + dragY + 'px); transition: none;' : ''}}">
     <view class="sheet-handle" catchtouchstart="onDragStart" catchtouchmove="onDragMove" catchtouchend="onDragEnd" catchtouchcancel="onDragEnd"></view>
 
-    <view class="type-switch">
-      <view class="type-opt {{type === 'expense' ? 'on-expense' : ''}}" data-type="expense" bindtap="switchType">支出</view>
-      <view class="type-opt {{type === 'income' ? 'on-income' : ''}}" data-type="income" bindtap="switchType">收入</view>
+    <!-- 已选分类：点击重开全屏分类选择页 -->
+    <view class="cat-row" bindtap="openAllCats">
+      <view class="cr-ic">{{selectedIcon}}</view>
+      <text class="cr-name">{{selectedName || '未选择分类'}}</text>
+      <text class="cr-swap">更换分类</text>
+      <text class="cr-arrow">›</text>
     </view>
 
     <view class="amount-wrap">
       <input class="amount-input" type="digit" placeholder="0.00" placeholder-class="amount-ph" value="{{amountText}}" bindinput="onAmount" adjust-position="{{false}}" />
-    </view>
-
-    <view class="cat-grid">
-      <view wx:for="{{cats}}" wx:key="id" class="cat-cell" data-id="{{item.id}}" bindtap="selectCat">
-        <view class="cat-ic {{selectedCatId === item.id ? 'sel' : ''}}">{{item.icon}}</view>
-        <view class="cat-name {{selectedCatId === item.id ? 'sel' : ''}}">{{item.name}}</view>
-      </view>
     </view>
 
     <view class="info-card">
@@ -28,14 +24,40 @@
         </view>
       </picker>
       <view class="info-line"></view>
+      <picker mode="time" value="{{time}}" bindchange="onTime">
+        <view class="info-row">
+          <text class="info-label">时间</text>
+          <view class="info-value">{{time}} <text class="info-arrow">›</text></view>
+        </view>
+      </picker>
+      <view class="info-line"></view>
       <view class="info-row">
         <text class="info-label">备注</text>
         <input class="note-input" placeholder="写点什么…" value="{{note}}" bindinput="onNote" adjust-position="{{false}}" />
       </view>
     </view>
 
-    <view class="save-btn {{saving ? 'disabled' : ''}}" bindtap="save">
-      <text wx:if="{{!saving}}">保存</text>
+    <!-- 凭证图片：非必传，最多 3 张 -->
+    <view class="img-card">
+      <view class="img-head">
+        <text class="img-title">凭证图片</text>
+        <text class="img-tip">最多 {{imgMax}} 张 · 单张 ≤{{imgMaxText}}</text>
+      </view>
+      <view class="img-row">
+        <view wx:for="{{images}}" wx:key="url" class="img-item">
+          <image class="img-thumb" src="{{item.fullUrl}}" mode="aspectFill" data-url="{{item.fullUrl}}" bindtap="previewImage"></image>
+          <view class="img-del" data-index="{{index}}" catchtap="removeImage">×</view>
+        </view>
+        <view wx:if="{{images.length < imgMax}}" class="img-add" bindtap="chooseImage">
+          <text class="img-add-ic">＋</text>
+          <text class="img-add-txt">{{uploading ? '上传中' : '添加'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="save-btn {{(saving || uploading) ? 'disabled' : ''}}" bindtap="save">
+      <text wx:if="{{uploading && !saving}}">图片上传中…</text>
+      <text wx:elif="{{!saving}}">保存</text>
       <view wx:else class="save-spinner"></view>
     </view>
 

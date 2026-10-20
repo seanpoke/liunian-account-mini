@@ -1,0 +1,85 @@
+<!-- pages/category-picker/category-picker.wxml —— 全屏分类选择 -->
+<view class="cp-page">
+  <view class="cp-head" style="padding-top:{{statusBarHeight}}px;">
+    <view class="cp-bar" style="height:{{navHeight}}px;">
+      <view class="cp-tabs">
+        <view class="cp-tab {{type === 'expense' ? 'on' : ''}}" data-type="expense" bindtap="switchType">支出</view>
+        <view class="cp-tab {{type === 'income' ? 'on' : ''}}" data-type="income" bindtap="switchType">收入</view>
+      </view>
+      <!-- 右上角是微信胶囊，取消放左侧，避免点不到 -->
+      <view class="cp-cancel" bindtap="cancel">取消</view>
+    </view>
+  </view>
+
+  <scroll-view class="cp-body" scroll-y="{{true}}" scroll-into-view="{{scrollToId}}" scroll-with-animation>
+    <!-- 版块一：常用（最近使用过的分类） -->
+    <block wx:if="{{recentList.length}}">
+      <view class="cp-sec-title">常用</view>
+      <view class="cp-grid">
+        <view wx:for="{{recentList}}" wx:key="id" id="rcat-{{item.id}}" class="cp-cell {{activeId === item.idStr ? 'on' : ''}}" data-id="{{item.id}}" bindtap="pick">
+          <view class="cp-ic">{{item.icon}}</view>
+          <view class="cp-name">{{item.name}}</view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 版块二：默认分类（系统预置） -->
+    <view class="cp-sec-title">默认分类</view>
+    <view class="cp-grid">
+      <view wx:for="{{systemCats}}" wx:key="id" id="cat-{{item.id}}" class="cp-cell {{activeId === item.idStr ? 'on' : ''}}" data-id="{{item.id}}" bindtap="pick">
+        <view class="cp-ic">{{item.icon}}</view>
+        <view class="cp-name">{{item.name}}</view>
+      </view>
+    </view>
+
+    <!-- 版块三：自定义分类（家庭自建）+ 新增入口 -->
+    <view class="cp-sec-title">自定义分类</view>
+    <view class="cp-grid">
+      <view wx:for="{{customCats}}" wx:key="id" id="cat-{{item.id}}" class="cp-cell {{activeId === item.idStr ? 'on' : ''}}" data-id="{{item.id}}" bindtap="pick">
+        <view class="cp-ic">{{item.icon}}</view>
+        <view class="cp-name">{{item.name}}</view>
+      </view>
+      <view wx:if="{{canAddCat}}" class="cp-cell" bindtap="addCategory">
+        <view class="cp-ic cp-ic-add">＋</view>
+        <view class="cp-name">新增</view>
+      </view>
+    </view>
+    <view class="cp-tip">点击分类即可选中并返回</view>
+  </scroll-view>
+
+  <!-- 新增分类弹层（底部滑出：图标 + 名称 + 取消/创建） -->
+  <view class="cat-mask {{catAddShow ? 'show' : ''}}" catchtap="closeCatAdd"></view>
+  <view class="cat-sheet {{catAddShow ? 'show' : ''}}" catchtap="noop">
+    <view class="cat-handle"></view>
+
+    <view class="cat-sheet-head">
+      <text class="cat-sheet-title">新增{{type === 'income' ? '收入' : '支出'}}分类</text>
+      <view class="cat-close" bindtap="closeCatAdd">×</view>
+    </view>
+
+    <view class="cat-field-head">
+      <text class="cat-field-label">图标</text>
+      <text class="cat-field-link" bindtap="resetCatIcon">{{catHasCustom ? '用默认' : '默认 ' + catAddIcon}}</text>
+    </view>
+    <view class="cat-input-box">
+      <input class="cat-input" placeholder="输入一个 emoji，如 🍊" placeholder-class="cat-input-ph"
+        value="{{catCustomIcon}}" maxlength="16" bindinput="onCatIconInput" />
+      <text wx:if="{{!catHasCustom}}" class="cat-input-preview">{{catAddIcon}}</text>
+    </view>
+    <view class="cat-field-tip">仅支持单个 emoji，留空则使用默认图标</view>
+
+    <view class="cat-field-head">
+      <text class="cat-field-label">名称</text>
+      <text class="cat-field-count">{{catAddName.length}}/10</text>
+    </view>
+    <view class="cat-input-box">
+      <input class="cat-input" placeholder="如：宝宝用品" placeholder-class="cat-input-ph"
+        value="{{catAddName}}" maxlength="10" bindinput="onCatNameInput" />
+    </view>
+
+    <view class="cat-sheet-actions">
+      <view class="cat-btn cancel" bindtap="closeCatAdd">取消</view>
+      <view class="cat-btn ok {{catAdding ? 'disabled' : ''}}" bindtap="confirmAddCategory">{{catAdding ? '创建中…' : '创建分类'}}</view>
+    </view>
+  </view>
+</view>

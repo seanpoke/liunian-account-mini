@@ -4,14 +4,21 @@
   <view class="page-body pad">
 
     <view class="card center profile-card">
-      <view class="av" style="background:{{bg}};">{{initial}}</view>
+      <image wx:if="{{avatarUrl}}" class="av" src="{{avatarUrl}}" mode="aspectFill" bindtap="changeAvatar" />
+      <view wx:else class="av" style="background:{{bg}};" bindtap="changeAvatar">{{initial}}</view>
       <view class="nm">{{nickname}}</view>
+      <view class="av-tip">点击头像更换</view>
     </view>
 
     <view class="card">
       <view class="row between item" bindtap="editName">
         <text class="muted">昵称</text>
         <view class="row">{{nickname}} <text class="chev">›</text></view>
+      </view>
+      <view class="divider"></view>
+      <view class="row between item" bindtap="changeAvatar">
+        <text class="muted">头像</text>
+        <view class="row">{{avatarUrl ? '已设置' : '未设置'}} <text class="chev">›</text></view>
       </view>
       <view class="divider"></view>
       <view class="row between item">
@@ -22,4 +29,8 @@
 
     <button class="btn-primary btn-block save" bindtap="save">保存</button>
   </view>
+
+  <prompt-dialog visible="{{nameEditShow}}" title="修改昵称" value="{{nameEditValue}}"
+                 placeholder="输入新昵称" maxlength="{{10}}"
+                 bind:confirm="onNameConfirm" bind:cancel="onNameCancel" />
 </view>

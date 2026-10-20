@@ -24,8 +24,15 @@ Page({
     if (s && s.familyId) {
       api.getMembers(s.familyId)
         .then(list => {
-          const acts = (list || []).filter(m => m.status === 'active').slice(0, 5)
-          this.setData({ avatars: acts.map(m => ({ initial: (m.nickname || '?').slice(0, 1), color: fmt.avGrad(m.color || '#07C160') })) })
+          const acts = (list || []).slice(0, 5)
+          this.setData({
+            avatars: acts.map(m => ({
+              openid: m.openid,
+              url: fmt.imgUrl(m.avatar),
+              initial: (m.nickname || '?').slice(0, 1),
+              color: fmt.avGrad(m.color || '#07C160')
+            }))
+          })
         })
         .catch(() => {})
     }

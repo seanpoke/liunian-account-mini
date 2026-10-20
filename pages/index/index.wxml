@@ -7,7 +7,8 @@
     <view class="hero" bindtap="goStats">
       <view class="hero-top">
         <text class="hero-month">本月 · {{monthLabel}}</text>
-        <view class="hero-av">{{myInitial}}</view>
+        <image wx:if="{{myAvatar}}" class="hero-av" src="{{myAvatar}}" mode="aspectFill" />
+        <view wx:else class="hero-av">{{myInitial}}</view>
       </view>
       <view class="hero-label">本月结余（元）</view>
       <view class="hero-balance">{{balanceText}}</view>
@@ -53,7 +54,10 @@
           <view class="tx-ic">{{t.categoryIcon}}</view>
           <view class="tx-mid">
             <view class="row between">
-              <text class="tx-cat">{{t.categoryName}}</text>
+              <view class="tx-cat-wrap">
+                <text class="tx-cat">{{t.categoryName}}</text>
+                <text wx:if="{{t.hasImage}}" class="tx-img-tag">有凭证</text>
+              </view>
               <text class="tx-amt {{t.typeCls}}">{{t.sign}}¥{{t.amountText}}</text>
             </view>
             <view class="tx-sub">{{t.sub}}</view>
@@ -70,5 +74,5 @@
     <view class="tab-clear"></view>
   </view>
 
-  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
+  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" preset="{{sheetPreset}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
 </view>

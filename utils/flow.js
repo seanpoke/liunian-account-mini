@@ -17,6 +17,9 @@ async function ensureLogin(extra) {
     familyId: data.familyId
   })
   store.setSession(s) // 先持久化 token，便于后续带鉴权请求
+  // 隐私授权以服务端为准：已同意则同步本地；本地已同意但服务端未记录则补提交
+  if (data.privacyAgreed) store.setPrivacyAgreed(true)
+  else if (store.isPrivacyAgreed()) api.submitPrivacy(true).catch(() => {})
   // 真实后端 /login 不返回 role / nickname，需从家庭成员列表补全
   if (data.isMember && data.familyId) {
     try {
@@ -25,6 +28,7 @@ async function ensureLogin(extra) {
       if (me) {
         s.role = me.role
         s.nickname = me.nickname
+        s.avatar = me.avatar || ''
         store.setSession(s)
       }
     } catch (e) {}

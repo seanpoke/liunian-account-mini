@@ -81,5 +81,5 @@
     <view class="tab-clear"></view>
   </view>
 
-  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
+  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" preset="{{sheetPreset}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
 </view>

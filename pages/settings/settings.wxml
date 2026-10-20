@@ -5,8 +5,10 @@
 
     <!-- 家庭卡 -->
     <view class="fam-card">
-      <view class="fam-av">
-        <image class="fam-av-ic" src="{{iconHouse}}" mode="aspectFit" />
+      <view class="fam-av" bindtap="changeFamilyAvatar">
+        <image wx:if="{{familyAvatarUrl && !familyAvatarError}}" class="fam-av-img"
+               src="{{familyAvatarUrl}}" mode="aspectFill" binderror="onFamilyAvatarError" />
+        <image wx:else class="fam-av-ic" src="{{iconHouse}}" mode="aspectFit" />
       </view>
       <view class="fam-info">
         <view class="fam-name">{{familyName}}</view>
@@ -18,17 +20,18 @@
     <!-- 待审批申请 -->
     <view class="sec-title">待审批申请<view wx:if="{{pending.length}}" class="badge">{{pending.length}}</view></view>
     <block wx:if="{{pending.length}}">
-      <view class="pend" wx:for="{{pending}}" wx:key="memberId">
+      <view class="pend" wx:for="{{pending}}" wx:key="requestId">
         <view class="pend-top">
-          <view class="av" style="background:{{item.bg}};">{{item.initial}}</view>
+          <image wx:if="{{item.avatarUrl}}" class="av" src="{{item.avatarUrl}}" mode="aspectFill" />
+          <view wx:else class="av" style="background:{{item.bg}};">{{item.initial}}</view>
           <view class="pend-info">
             <view class="pend-nm">{{item.nickname}}</view>
             <view class="pend-sub">{{item.sub}}</view>
           </view>
         </view>
         <view class="pend-actions">
-          <view class="p-no" bindtap="reject" data-id="{{item.memberId}}">拒绝</view>
-          <view class="p-ok" bindtap="approve" data-id="{{item.memberId}}">同意加入</view>
+          <view class="p-no" bindtap="reject" data-id="{{item.requestId}}">拒绝</view>
+          <view class="p-ok" bindtap="approve" data-id="{{item.requestId}}">同意加入</view>
         </view>
       </view>
     </block>
@@ -38,7 +41,8 @@
     <view class="sec-title">家庭成员<text class="cnt">{{memberCount}}</text></view>
     <view class="group">
       <view class="mrow" wx:for="{{members}}" wx:key="memberId" data-id="{{item.memberId}}" bindtap="tapMember">
-        <view class="av" style="background:{{item.bg}};">{{item.initial}}</view>
+        <image wx:if="{{item.avatarUrl}}" class="av" src="{{item.avatarUrl}}" mode="aspectFill" />
+        <view wx:else class="av" style="background:{{item.bg}};">{{item.initial}}</view>
         <view class="nm">{{item.displayName}}<text class="sub">{{item.sub}}</text></view>
         <view class="tag {{item.role === 'owner' ? 'own' : ''}}">{{item.role === 'owner' ? '创建者' : '成员'}}</view>
         <text class="chev">›</text>
@@ -51,6 +55,10 @@
       <view class="srow" bindtap="tapTransfer">
         <view class="lbl">转让创建者</view>
         <view class="val">{{ownerName}}</view>
+        <text class="chev">›</text>
+      </view>
+      <view class="srow" bindtap="switchFamily">
+        <view class="lbl">切换家庭</view>
         <text class="chev">›</text>
       </view>
       <view class="srow" bindtap="tapQuit">
@@ -74,7 +82,8 @@
   <view class="m-mask {{sheetShow ? 'show' : ''}}" bindtap="closeMemberSheet"></view>
   <view class="m-sheet {{sheetShow ? 'show' : ''}}">
     <view class="mh">
-      <view class="m-av" style="background:{{sheetMember.bg}};">{{sheetMember.initial}}</view>
+      <image wx:if="{{sheetMember.avatarUrl}}" class="m-av" src="{{sheetMember.avatarUrl}}" mode="aspectFill" />
+      <view wx:else class="m-av" style="background:{{sheetMember.bg}};">{{sheetMember.initial}}</view>
       <view class="m-nm">{{sheetMember.nickname}}</view>
       <view class="m-sub">{{sheetMember.roleText}}{{sheetMember.joinText}}</view>
     </view>
@@ -82,7 +91,7 @@
       <view><text class="num">{{sheetMember.monthCount || 0}}</text>本月记账（笔）</view>
       <view><text class="num">{{sheetMember.totalCount || 0}}</text>累计记账（笔）</view>
     </view>
-    <view wx:if="{{sheetActions.editSelf}}" class="maction" bindtap="editSelf">修改我的昵称</view>
+    <view wx:if="{{sheetActions.editSelf}}" class="maction" bindtap="editSelf">修改我的资料</view>
     <view wx:if="{{sheetActions.transfer}}" class="maction" bindtap="transfer">转让创建者给他</view>
     <view wx:if="{{sheetActions.remove}}" class="maction danger" bindtap="remove">移出家庭</view>
     <view wx:if="{{sheetActions.note}}" class="mnote">仅创建者可管理成员</view>
@@ -110,5 +119,9 @@
     <button class="icancel" bindtap="closeInvite">取消</button>
   </view>
 
-  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
+  <prompt-dialog visible="{{nameEditShow}}" title="{{nameEditTitle}}" value="{{nameEditValue}}"
+                 placeholder="请输入" maxlength="{{10}}"
+                 bind:confirm="onNameConfirm" bind:cancel="onNameCancel" />
+
+  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" preset="{{sheetPreset}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
 </view>

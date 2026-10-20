@@ -94,6 +94,7 @@
   background: linear-gradient(135deg, #07C160, #0aa85a);
   color: #fff; font-size: 34rpx; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
 }
 .fp-info { flex: 1; min-width: 0; }
 .fp-name { font-size: 31rpx; font-weight: 600; }

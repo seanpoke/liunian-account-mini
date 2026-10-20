@@ -22,7 +22,7 @@ Page({
   data: {
     statusBarHeight: 20,
     token: '', familyName: '', familyInitial: '账',
-    inviterNickname: '', inviterInitial: '?', inviterBg: 'linear-gradient(135deg,#07C160,#0aa85a)',
+    inviterNickname: '', inviterInitial: '?', inviterAvatarUrl: '', inviterBg: 'linear-gradient(135deg,#07C160,#0aa85a)',
     invalid: false, applied: false, alreadyMember: false,
     mask: true, loading: false, members: [], memberCount: 0, applyNickname: '',
     clockIcon: ICONS.clock
@@ -48,12 +48,17 @@ Page({
     }
   },
   _enter(token) {
-    const s = store.getSession()
-    if (s && s.isMember && s.familyId) {
-      this.setData({ mask: false, alreadyMember: true, familyName: '流年小账', familyInitial: '账' })
+    // 有多家庭：即使已属于某个家庭，扫新家庭的邀请码也应允许申请，
+    // 因此只要带 token 就必须走校验，由 applicationStatus 决定去向。
+    if (!token) {
+      const s = store.getSession()
+      if (s && s.isMember && s.familyId) {
+        this.setData({ mask: false, alreadyMember: true, familyName: '流年小账', familyInitial: '账' })
+      } else {
+        this.setData({ mask: false, invalid: true })
+      }
       return
     }
-    if (!token) { this.setData({ mask: false, invalid: true }); return }
     this.verify()
   },
   // 阶段①：校验 token（有效性 / 是否已加入）
@@ -67,7 +72,15 @@ Page({
           familyInitial: (d.familyName || '账').slice(0, 1),
           inviterNickname: d.inviterNickname,
           inviterInitial: (d.inviterNickname || '?').slice(0, 1),
-          inviterBg: fmt.avGrad('#07C160')
+          inviterAvatarUrl: fmt.imgUrl(d.inviterAvatar),
+          inviterBg: fmt.avGrad('#07C160'),
+          // 邀请响应不含成员列表，这里只展示邀请人头像
+          members: d.inviterNickname ? [{
+            openid: 'inviter',
+            initial: (d.inviterNickname || '?').slice(0, 1),
+            url: fmt.imgUrl(d.inviterAvatar),
+            bg: fmt.avGrad('#07C160')
+          }] : []
         })
         // 四态分支：依据「当前用户对该邀请的申请状态」决定去向
         // applicationStatus: none(未申请) | pending(待审批) | approved(已通过) | rejected(已拒绝)
@@ -87,20 +100,8 @@ Page({
           this.setData({ applied: true })
         }
         // none / rejected → 邀请确认页（状态②），rejected 可重新提交申请
-        this.loadMembers()
       })
       .catch(() => this.setData({ mask: false, invalid: true }))
-  },
-  loadMembers() {
-    const s = store.getSession()
-    if (!s || !s.familyId) return
-    api.getMembers(s.familyId).then(list => {
-      const acts = (list || []).filter(m => m.status === 'active').slice(0, 5)
-      this.setData({
-        members: acts.map(m => ({ openid: m.openid, initial: (m.nickname || '?').slice(0, 1), bg: fmt.avGrad(m.color || '#07C160') })),
-        memberCount: list.filter(m => m.status === 'active').length
-      })
-    }).catch(() => {})
   },
   // 阶段② → ③：提交加入申请（不等于立即加入）
   submitApply() {
@@ -113,7 +114,8 @@ Page({
       return
     }
     this.setData({ loading: true })
-    api.applyInvitation(this.data.token, name)
+    // avatar 可选：有全局头像就一并带上，后端会写入 join_request / 审批后的成员资料
+    api.applyInvitation(this.data.token, name, (s && s.avatar) || undefined)
       .then(() => {
         // 把昵称写入会话并同步回成员资料，避免家庭其他视图显示默认名
         const sess = store.getSession() || {}
@@ -131,10 +133,10 @@ Page({
     flow.switchIdentity('o_owner')
       .then(() => {
         const fid = store.getSession().familyId
-        return api.getPending(fid).then(list => {
-          const pend = list.find(p => p.applicantOpenid === applicant)
+        return api.getJoinRequests(fid).then(list => {
+          const pend = (list || []).find(p => p.applicantOpenid === applicant)
           if (!pend) throw new Error('未找到待审批申请')
-          return api.approveMember(fid, pend.memberId)
+          return api.approveJoinRequest(fid, pend.requestId)
         })
       })
       .then(() => flow.switchIdentity(applicant))

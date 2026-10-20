@@ -17,8 +17,10 @@
   background: linear-gradient(135deg, #07C160, #0aa85a);
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 8rpx 24rpx rgba(7, 193, 96, 0.28);
+  position: relative; overflow: hidden;
 }
 .fam-av-ic { width: 52rpx; height: 52rpx; }
+.fam-av-img { width: 100%; height: 100%; display: block; }
 .fam-info { flex: 1; min-width: 0; }
 .fam-name { font-size: 34rpx; font-weight: 600; }
 .fam-sub { font-size: 23rpx; color: #9a9a9a; margin-top: 10rpx; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

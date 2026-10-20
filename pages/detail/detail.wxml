@@ -26,7 +26,10 @@
           <view class="ic">{{t.categoryIcon}}</view>
           <view class="mid">
             <view class="line1">
-              <text class="tcat">{{t.categoryName}}</text>
+              <view class="tcat-wrap">
+                <text class="tcat">{{t.categoryName}}</text>
+                <text wx:if="{{t.hasImage}}" class="img-tag">有凭证</text>
+              </view>
               <text class="amt {{t.typeCls}}">{{t.sign}}¥{{t.amountText}}</text>
             </view>
             <view class="note">{{t.sub}}</view>
@@ -42,5 +45,5 @@
     <view class="tab-clear"></view>
   </view>
 
-  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
+  <record-sheet visible="{{sheetVisible}}" editId="{{sheetEditId}}" preset="{{sheetPreset}}" bind:close="onSheetClose" bind:saved="onSheetSaved" />
 </view>

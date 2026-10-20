@@ -3,6 +3,7 @@ const api = require('../../utils/api')
 const fmt = require('../../utils/format')
 const charts = require('../../utils/charts')
 const store = require('../../utils/store')
+const recordFlow = require('../../utils/record-flow')
 
 function statusBar() {
   const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
@@ -14,12 +15,12 @@ Page({
     statusBarHeight: 20,
     familyName: '流年小账',
     incomeText: '0.00', expenseText: '0.00', balanceText: '¥0.00',
-    monthLabel: '', myInitial: '家',
+    monthLabel: '', myInitial: '家', myAvatar: '',
     todayCount: 0, todayExpenseText: '0.00', todayIncomeText: '0.00',
     recent: [],
     hasData: false,
     miniImg: '', miniOn: false,
-    sheetVisible: false, sheetEditId: ''
+    sheetVisible: false, sheetEditId: '', sheetPreset: null
   },
   onLoad() {
     this.setData({ statusBarHeight: statusBar() })
@@ -60,8 +61,10 @@ Page({
           t.amountText = fmt.formatMoney(t.amount)
           t.typeCls = t.type === 'income' ? 'income' : 'expense'
           t.sign = t.type === 'income' ? '+' : '-'
-          const time = t.createdAt ? t.createdAt.slice(11, 16) : ''
+          const time = t.time || (t.createdAt ? t.createdAt.slice(11, 16) : '')
           t.sub = [t.note || '无备注', t.nickname, time].filter(Boolean).join(' · ')
+          t.hasImage = Array.isArray(t.images) && t.images.length > 0
+
         })
         const bal = inc - exp
         return {
@@ -80,6 +83,7 @@ Page({
         familyName: fam.name,
         monthLabel: now.getFullYear() + '年' + (now.getMonth() + 1) + '月',
         myInitial: (s.nickname || fam.name || '家').slice(0, 1),
+        myAvatar: fmt.imgUrl(s.avatar),
         balanceText: (bal >= 0 ? '¥' : '-¥') + fmt.formatMoney(Math.abs(bal)),
         incomeText: fmt.formatMoney(stats.income),
         expenseText: fmt.formatMoney(stats.expense),
@@ -112,10 +116,8 @@ Page({
   goStats() { wx.switchTab({ url: '/pages/stats/stats' }) },
   goRecord() { this.showRecordSheet() },
   goDetail() { wx.switchTab({ url: '/pages/detail/detail' }) },
-  showRecordSheet(id) {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: true })
-    this.setData({ sheetVisible: true, sheetEditId: id || '' })
-  },
+  // 新建：先到全屏分类选择页；编辑：直接打开弹层
+  showRecordSheet(id) { recordFlow.start(this, id) },
   onSheetClose() {
     this.setData({ sheetVisible: false })
     if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: false })

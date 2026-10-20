@@ -11,7 +11,8 @@
     <view wx:if="{{famList.length}}" class="fam-pick">
       <view class="fp-title">选择要进入的家庭</view>
       <view class="fp-item" wx:for="{{famList}}" wx:key="familyId" data-id="{{item.familyId}}" bindtap="tapFamily">
-        <view class="fp-av">{{item.initial}}</view>
+        <image wx:if="{{item.avatarUrl}}" class="fp-av" src="{{item.avatarUrl}}" mode="aspectFill" />
+        <view wx:else class="fp-av">{{item.initial}}</view>
         <view class="fp-info">
           <view class="fp-name">{{item.name}}</view>
           <view class="fp-sub">{{item.sub}}</view>

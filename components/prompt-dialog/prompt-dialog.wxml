@@ -1,0 +1,15 @@
+<!-- components/prompt-dialog/prompt-dialog.wxml -->
+<view wx:if="{{visible}}" class="pd-mask" bindtap="onCancel" catchtouchmove="noop"></view>
+<view class="pd-box {{visible ? 'show' : ''}}">
+  <view class="pd-title">{{title}}</view>
+  <view class="pd-field">
+    <input class="pd-input" value="{{text}}" maxlength="{{maxlength}}" focus="{{visible}}"
+           placeholder="{{placeholder}}" placeholder-class="pd-ph"
+           confirm-type="done" bindinput="onInput" bindconfirm="onConfirm" />
+    <text class="pd-count">{{count}}/{{maxlength}}</text>
+  </view>
+  <view class="pd-actions">
+    <view class="pd-btn cancel" bindtap="onCancel">取消</view>
+    <view class="pd-btn ok" bindtap="onConfirm">确定</view>
+  </view>
+</view>

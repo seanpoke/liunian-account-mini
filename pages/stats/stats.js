@@ -3,6 +3,7 @@ const api = require('../../utils/api')
 const fmt = require('../../utils/format')
 const charts = require('../../utils/charts')
 const store = require('../../utils/store')
+const recordFlow = require('../../utils/record-flow')
 
 const RING_PALETTE = ['#3a6df0', '#ff7a45', '#18a058', '#f0a020', '#9254de', '#36cfc9', '#f5222d', '#13c2c2', '#fa8c16', '#8c8c8c']
 const MEMBER_PALETTE = ['#07C160', '#4C8DFF', '#FFB020', '#9254DE', '#36CFC9', '#FF7A45', '#EB2F96', '#13C2C2']
@@ -26,7 +27,7 @@ Page({
     // 图表：canvas 绘制后导出为图片展示（imgKey），canvas 节点随即移除（xxxCavasOn=false）
     trendImg: '', ringImg: '', barImg: '',
     trendCanvasOn: false, ringCanvasOn: false, barCanvasOn: false,
-    sheetVisible: false, sheetEditId: ''
+    sheetVisible: false, sheetEditId: '', sheetPreset: null
   },
   onLoad() {
     const now = new Date()
@@ -50,7 +51,7 @@ Page({
     this._memberColor = {}
     if (s && s.familyId) {
       api.getMembers(s.familyId).then(list => {
-        const members = list.filter(m => m.status === 'active')
+        const members = (list || []).slice()
         const memberChips = members.map((m, i) => {
           const color = MEMBER_PALETTE[i % MEMBER_PALETTE.length]
           this._memberColor[m.openid] = color
@@ -238,11 +239,8 @@ Page({
     const memberChips = this.data.memberChips.map(c => Object.assign({}, c, { on: false }))
     this.setData({ filterMembers: [], memberChips }, () => this.load())
   },
-  // 底部「＋」记账弹层（与首页/明细一致的就地弹层效果）
-  showRecordSheet(id) {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: true })
-    this.setData({ sheetVisible: true, sheetEditId: id || '' })
-  },
+  // 新建：先到全屏分类选择页；编辑：直接打开弹层
+  showRecordSheet(id) { recordFlow.start(this, id) },
   onSheetClose() {
     this.setData({ sheetVisible: false })
     if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: false })

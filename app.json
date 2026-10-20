@@ -2,9 +2,9 @@
   "pages": [
     "pages/start/start",
     "pages/index/index",
-    "pages/record/record",
     "pages/stats/stats",
     "pages/detail/detail",
+    "pages/category-picker/category-picker",
     "pages/invite/invite",
     "pages/invite/confirm",
     "pages/welcome/welcome",

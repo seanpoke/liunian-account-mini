@@ -3,8 +3,10 @@ const api = require('../../utils/api')
 const store = require('../../utils/store')
 const flow = require('../../utils/flow')
 const fmt = require('../../utils/format')
+const recordFlow = require('../../utils/record-flow')
+const { chooseAvatarImage } = require('../../utils/upload')
 
-const SHEET_EMPTY = { memberId: '', openid: '', nickname: '', initial: '', bg: '', role: '', roleText: '', joinText: '', monthCount: 0, totalCount: 0 }
+const SHEET_EMPTY = { memberId: '', openid: '', nickname: '', avatarUrl: '', initial: '', bg: '', role: '', roleText: '', joinText: '', monthCount: 0, totalCount: 0 }
 
 function statusBar() {
   const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
@@ -35,6 +37,7 @@ Page({
   data: {
     statusBarHeight: 20,
     nickname: '', role: '', isOwner: false, familyName: '', ownerName: '',
+    familyId: '', familyAvatarUrl: '', familyAvatarError: false, memberAvatarUrl: '',
     members: [], pending: [], memberCount: 0, monthCount: 0, curIdentity: '',
     sheetShow: false,
     sheetMember: SHEET_EMPTY,
@@ -45,7 +48,8 @@ Page({
     iconHouse: ICONS.house,
     iconShare: ICONS.share,
     iconCircle: ICONS.circle,
-    sheetVisible: false, sheetEditId: ''
+    sheetVisible: false, sheetEditId: '', sheetPreset: null,
+    nameEditShow: false, nameEditTitle: '', nameEditValue: '', nameEditType: ''
   },
   onLoad() {
     this.setData({ statusBarHeight: statusBar() })
@@ -61,40 +65,50 @@ Page({
     if (!s) return
     this.setData({
       nickname: s.nickname || '我', role: s.role, isOwner: s.role === 'owner',
-      curIdentity: s.openid
+      curIdentity: s.openid, familyId: s.familyId || '',
+      memberAvatarUrl: fmt.imgUrl(s.avatar)
     })
     if (!s.familyId) return
-    api.getFamily(s.familyId).then(f => this.setData({ familyName: f.name })).catch(() => {})
+    api.getFamily(s.familyId).then(f => this.setData({
+      familyName: f.name,
+      familyAvatarUrl: fmt.imgUrl(f.avatar),
+      familyAvatarError: false
+    })).catch(() => {})
     this.loadMembers()
   },
   loadMembers() {
     const s = store.getSession()
     if (!s || !s.familyId) return
     const p1 = api.getMembers(s.familyId)
-    const p2 = s.role === 'owner' ? api.getPending(s.familyId).catch(() => []) : Promise.resolve([])
+    const p2 = s.role === 'owner' ? api.getJoinRequests(s.familyId).catch(() => []) : Promise.resolve([])
     Promise.all([p1, p2]).then(([list, pend]) => {
+      list = list || []
       const owner = list.find(m => m.role === 'owner')
       const ownerName = owner ? owner.nickname : ''
-      const members = list.filter(m => m.status === 'active').map(m => {
+      // 新接口只返回真实成员，不再有 status 字段
+      const members = list.map(m => {
         const isSelf = m.openid === s.openid
         const jd = m.joinedAt ? m.joinedAt.slice(0, 10) : ''
         const sub = m.role === 'owner'
           ? '家庭创建者 · ' + (jd ? jd + ' 创建家庭' : '')
-          : (jd ? '加入于 ' + jd + ' · ' : '') + '本月记账 ' + m.monthCount + ' 笔'
+          : (jd ? '加入于 ' + jd + ' · ' : '') + '本月记账 ' + (m.monthCount || 0) + ' 笔'
         return Object.assign({}, m, {
           initial: (m.nickname || '?').slice(0, 1),
+          avatarUrl: fmt.imgUrl(m.avatar),
           bg: fmt.avGrad(m.color || '#07C160'),
           displayName: isSelf ? m.nickname + '（我）' : m.nickname,
           sub
         })
       })
+      // 待审批：接口字段为 requestId（不再是 memberId）
       const pendList = (pend || []).map(p => {
         const at = (p.applyAt || '').slice(0, 16)
         const when = fmt.friendDate(at.slice(0, 10)) + ' ' + at.slice(11, 16)
         return Object.assign({}, p, {
           initial: (p.nickname || '?').slice(0, 1),
+          avatarUrl: fmt.imgUrl(p.avatar),
           bg: fmt.avGrad(p.color || '#bfbfbf'),
-          sub: '来自「' + (ownerName || '家人') + '」的邀请 · ' + when
+          sub: (p.channel === 'self' ? '主动申请' : '邀请加入') + ' · ' + when
         })
       })
       const monthCount = members.reduce((a, m) => a + (m.monthCount || 0), 0)
@@ -105,10 +119,92 @@ Page({
     }).catch(() => {})
   },
   goPrivacy() { wx.navigateTo({ url: '/pages/privacy/privacy?mode=settings' }) },
+  // 多家庭：回到启动页重新选择（1 个家庭会自动进入）
+  switchFamily() { wx.reLaunch({ url: '/pages/start/start' }) },
+
+  // ---------- 家庭头像（仅创建者） ----------
+  // 头像加载失败（CDN 403 / 图片已被删除等）→ 回落到默认家庭图标
+  onFamilyAvatarError() {
+    if (this.data.familyAvatarError) return
+    this.setData({ familyAvatarError: true })
+  },
+  // 点击家庭头像：修改家庭名称 / 修改头像（与个人头像同一套交互）
+  changeFamilyAvatar() {
+    if (!this.data.isOwner) { wx.showToast({ title: '仅创建者可修改家庭信息', icon: 'none' }); return }
+    wx.showActionSheet({
+      itemList: ['修改家庭名称', '修改头像'],
+      success: (r) => {
+        if (r.tapIndex === 0) this._editFamilyName()
+        else if (r.tapIndex === 1) this._pickFamilyAvatar()
+      }
+    })
+  },
+  // 家庭名称最多 10 个字符，由 prompt-dialog 的 maxlength 硬限制
+  _editFamilyName() {
+    if (!this.data.isOwner) { wx.showToast({ title: '仅创建者可修改家庭信息', icon: 'none' }); return }
+    this.setData({
+      nameEditShow: true,
+      nameEditType: 'family',
+      nameEditTitle: '修改家庭名称',
+      nameEditValue: this.data.familyName || ''
+    })
+  },
+  onNameCancel() {
+    this.setData({ nameEditShow: false })
+  },
+  onNameConfirm(e) {
+    const name = e.detail.value
+    const type = this.data.nameEditType
+    this.setData({ nameEditShow: false })
+    if (type === 'family') this._saveFamilyName(name)
+    else this._saveMyNickname(name)
+  },
+  _saveFamilyName(name) {
+    const s = store.getSession()
+    if (!s || !s.familyId) return
+    if (name === this.data.familyName) return
+    wx.showLoading({ title: '保存中' })
+    api.updateFamily(s.familyId, { name })
+      .then((f) => {
+        wx.hideLoading()
+        this.setData({ familyName: (f && f.name) || name })
+        wx.showToast({ title: '已更新', icon: 'success' })
+      })
+      .catch((e) => { wx.hideLoading(); wx.showToast({ title: e.message || '操作失败', icon: 'none' }) })
+  },
+  _saveMyNickname(name) {
+    if (name === this.data.nickname) return
+    wx.showLoading({ title: '保存中' })
+    api.updateMe({ nickname: name })
+      .then(() => {
+        const s = store.getSession() || {}
+        store.setSession(Object.assign({}, s, { nickname: name }))
+        wx.hideLoading()
+        this.load()
+        wx.showToast({ title: '已更新', icon: 'success' })
+      })
+      .catch((e) => { wx.hideLoading(); wx.showToast({ title: e.message, icon: 'none' }) })
+  },
+  _pickFamilyAvatar() {
+    const s = store.getSession()
+    if (!s || !s.familyId) return
+    chooseAvatarImage((path) => {
+      if (!path) { wx.showToast({ title: '头像处理失败，请重试', icon: 'none' }); return }
+      wx.showLoading({ title: '上传中' })
+      api.upload(path, s.familyId)
+        .then(d => api.updateFamily(s.familyId, { avatar: d.url }).then(f => (f && f.avatar) || d.url))
+        .then((avatar) => {
+          wx.hideLoading()
+          this.setData({ familyAvatarUrl: fmt.imgUrl(avatar), familyAvatarError: false })
+          wx.showToast({ title: '已更新', icon: 'success' })
+        })
+        .catch((e) => { wx.hideLoading(); wx.showToast({ title: e.message || '上传失败', icon: 'none' }) })
+    })
+  },
   // ---------- 成员操作弹层 ----------
   tapMember(e) {
     const id = e.currentTarget.dataset.id
-    const m = this.data.members.find(x => x.memberId === id)
+    const m = this.data.members.find(x => x.memberId === id || String(x.memberId) === String(id))
     if (!m) return
     const isSelf = m.openid === this.data.curIdentity
     const roleText = m.role === 'owner' ? '家庭创建者' : '家庭成员'
@@ -135,14 +231,46 @@ Page({
   editSelf() {
     const m = this.data.sheetMember
     this.closeMemberSheet()
-    wx.showModal({
-      title: '修改我的昵称', editable: true, placeholderText: '输入新昵称', content: m.nickname,
+    wx.showActionSheet({
+      itemList: ['修改昵称', '修改头像'],
       success: (r) => {
-        if (!r.confirm || !r.content.trim()) return
-        api.updateMe({ nickname: r.content.trim() })
-          .then(() => { this.load(); wx.showToast({ title: '已更新', icon: 'success' }) })
-          .catch((e) => wx.showToast({ title: e.message, icon: 'none' }))
+        if (r.tapIndex === 0) this._editMyNickname(m)
+        else if (r.tapIndex === 1) this._changeMyAvatar()
       }
+    })
+  },
+  _editMyNickname(m) {
+    this.setData({
+      nameEditShow: true,
+      nameEditType: 'member',
+      nameEditTitle: '修改我的昵称',
+      nameEditValue: (m && m.nickname) || this.data.nickname || ''
+    })
+  },
+  // 头像走 /upload → PATCH /user/me（全局同步到所有家庭的成员资料）
+  _changeMyAvatar() {
+    const s = store.getSession()
+    if (!s) return
+    chooseAvatarImage((path) => {
+      if (!path) { wx.showToast({ title: '头像处理失败，请重试', icon: 'none' }); return }
+      let uploaded = ''
+      wx.showLoading({ title: '上传中' })
+      api.upload(path, s.familyId)
+        .then(d => { uploaded = d.url; return api.updateMe({ avatar: uploaded }) })
+        .then(() => {
+          // 以服务端返回地址为准（线上是 CDN 绝对地址），回读失败时用上传地址兜底
+          return api.getUserMe().catch(() => null).then((me) => {
+            const cur = store.getSession() || {}
+            store.setSession(Object.assign({}, cur, { avatar: (me && me.avatar) || uploaded }))
+          })
+        })
+        .then(() => {
+          wx.hideLoading()
+          this.load()
+          this.loadMembers()
+          wx.showToast({ title: '已更新', icon: 'success' })
+        })
+        .catch((e) => { wx.hideLoading(); wx.showToast({ title: e.message || '上传失败', icon: 'none' }) })
     })
   },
   transfer() {
@@ -163,11 +291,12 @@ Page({
     const m = this.data.sheetMember
     this.closeMemberSheet()
     wx.showModal({
-      title: '移出家庭', content: '将「' + m.nickname + '」移出，其历史记录保留',
+      title: '移出家庭',
+      content: '将「' + m.nickname + '」移出家庭？其在该家庭的账目将作废（数据保留但不计入统计）。',
       success: (r) => {
         if (!r.confirm) return
         api.removeMember(store.getSession().familyId, m.memberId)
-          .then(() => { this.load(); wx.showToast({ title: '已移出', icon: 'success' }) })
+          .then(() => { this.loadMembers(); wx.showToast({ title: '已移出', icon: 'success' }) })
           .catch((e) => wx.showToast({ title: e.message, icon: 'none' }))
       }
     })
@@ -194,15 +323,15 @@ Page({
       }
     })
   },
-  // 退出家庭：所有成员均可退出（接口文档 §16）
-  // 普通成员退出→保留历史账单；创建者退出→自动转让给最早加入成员；仅剩本人→整户解散
+  // 退出家庭（接口文档 §16）：
+  // 仅剩本人 → 整户解散；还有其他成员 → 本人流水作废 + 成员行物理删除；创建者自动转让
   tapQuit() {
     const alone = this.data.memberCount <= 1
     const content = this.data.isOwner
       ? (alone
         ? '家庭仅你一人，退出后该家庭及全部账单数据将被删除，不可恢复'
-        : '你是创建者，退出后创建者身份将自动转让给最早加入的成员，历史账单保留')
-      : '退出后你将无法查看该账本（你的历史记录保留），需重新被邀请才能加入'
+        : '你是创建者，退出后创建者身份将自动转让给最早加入的成员；你本人在该家庭的账目将作废（不计入统计）')
+      : '退出后你本人在该家庭的账目将作废（不计入统计），需重新被邀请才能加入'
     wx.showModal({
       title: '退出家庭', content,
       success: (r) => {
@@ -234,15 +363,16 @@ Page({
       }
     })
   },
+  // 审批：新接口路径 /join-request/{requestId}/approve|reject
   approve(e) {
     const id = e.currentTarget.dataset.id
-    api.approveMember(store.getSession().familyId, id)
+    api.approveJoinRequest(store.getSession().familyId, id)
       .then(() => { this.loadMembers(); wx.showToast({ title: '已通过', icon: 'success' }) })
       .catch((err) => wx.showToast({ title: err.message, icon: 'none' }))
   },
   reject(e) {
     const id = e.currentTarget.dataset.id
-    api.rejectMember(store.getSession().familyId, id)
+    api.rejectJoinRequest(store.getSession().familyId, id)
       .then(() => { this.loadMembers(); wx.showToast({ title: '已拒绝', icon: 'success' }) })
       .catch((err) => wx.showToast({ title: err.message, icon: 'none' }))
   },
@@ -319,15 +449,12 @@ Page({
   },
   onShareAppMessage() {
     if (this._shareToken) {
-      return { title: '「流年小账」邀请你一起记账', path: '/pages/invite/invite?token=' + this._shareToken }
+      return { title: '「流年小账」邀请你一起记账', path: '/pages/invite/confirm?token=' + this._shareToken }
     }
     return { title: '流年小账', path: '/pages/start/start' }
   },
-  // 底部「＋」记账弹层（与首页/明细一致的就地弹层效果）
-  showRecordSheet(id) {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: true })
-    this.setData({ sheetVisible: true, sheetEditId: id || '' })
-  },
+  // 新建：先到全屏分类选择页；编辑：直接打开弹层
+  showRecordSheet(id) { recordFlow.start(this, id) },
   onSheetClose() {
     this.setData({ sheetVisible: false })
     if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: false })

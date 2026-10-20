@@ -2,6 +2,7 @@
 const store = require('../../utils/store')
 const flow = require('../../utils/flow')
 const api = require('../../utils/api')
+const fmt = require('../../utils/format')
 const { ENABLE_MOCK } = require('../../utils/config')
 
 function svgUri(svg) {
@@ -73,6 +74,7 @@ Page({
         loading: false,
         famList: list.map((f) => Object.assign({}, f, {
           initial: (f.name || '?').slice(0, 1),
+          avatarUrl: fmt.imgUrl(f.avatar),
           sub: (f.memberCount || 0) + ' 位成员' + (f.role === 'owner' ? ' · 我是创建者' : '')
         }))
       })

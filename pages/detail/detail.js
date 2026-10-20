@@ -2,6 +2,7 @@
 const api = require('../../utils/api')
 const fmt = require('../../utils/format')
 const store = require('../../utils/store')
+const recordFlow = require('../../utils/record-flow')
 
 function statusBar() {
   const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
@@ -13,14 +14,14 @@ Page({
     statusBarHeight: 20,
     typeSel: 'all', memberSel: '', members: [],
     groups: [], total: 0,
-    sheetVisible: false, sheetEditId: ''
+    sheetVisible: false, sheetEditId: '', sheetPreset: null
   },
   onLoad() {
     this.setData({ statusBarHeight: statusBar() })
     const s = store.getSession()
     if (s && s.familyId) {
       api.getMembers(s.familyId).then(list => {
-        this.setData({ members: [{ openid: '', nickname: '全部' }].concat(list.filter(m => m.status === 'active')) })
+        this.setData({ members: [{ openid: '', nickname: '全部' }].concat(list || []) })
       }).catch(() => {})
     }
   },
@@ -44,8 +45,9 @@ Page({
         t.amountText = fmt.formatMoney(t.amount)
         t.typeCls = t.type === 'income' ? 'income' : 'expense'
         t.sign = t.type === 'income' ? '+' : '-'
-        const time = t.createdAt ? t.createdAt.slice(11, 16) : ''
+        const time = t.time || (t.createdAt ? t.createdAt.slice(11, 16) : '')
         t.sub = [t.note || '无备注', t.nickname, time].filter(Boolean).join(' · ')
+        t.hasImage = Array.isArray(t.images) && t.images.length > 0
         total += t.type === 'income' ? t.amount : -t.amount
         ;(map[t.date] = map[t.date] || []).push(t)
       })
@@ -71,10 +73,8 @@ Page({
   onType(e) { this.setData({ typeSel: e.currentTarget.dataset.t }, () => this.load()) },
   onMember(e) { this.setData({ memberSel: e.currentTarget.dataset.id }, () => this.load()) },
   openItem(e) { this.showRecordSheet(e.currentTarget.dataset.id) },
-  showRecordSheet(id) {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: true })
-    this.setData({ sheetVisible: true, sheetEditId: id || '' })
-  },
+  // 新建：先到全屏分类选择页；编辑：直接打开弹层
+  showRecordSheet(id) { recordFlow.start(this, id) },
   onSheetClose() {
     this.setData({ sheetVisible: false })
     if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: false })
