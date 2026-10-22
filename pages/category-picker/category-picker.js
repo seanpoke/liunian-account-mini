@@ -26,6 +26,9 @@ Page({
     // 新增分类后滚动定位到该分类
     scrollToId: '',
     canAddCat: true,
+    // 分类管理态（仅家庭创建者可进入）：自定义分类右上角出现删除角标
+    isOwner: false,
+    manageMode: false,
     // 新增分类弹层（图标 + 名称，与记账弹层保持一致）
     catAddShow: false,
     catAddName: '',
@@ -46,7 +49,12 @@ Page({
       const gap = Math.max(0, rect.top - statusBarHeight)
       navHeight = rect.height + gap * 2
     }
-    this.setData({ statusBarHeight, navHeight, type, activeId })
+    const session = store.getSession() || {}
+    this.setData({
+      statusBarHeight, navHeight, type, activeId,
+      // 删除分类仅家庭创建者（owner）可操作
+      isOwner: session.role === 'owner'
+    })
     this.load()
   },
   load() {
@@ -87,6 +95,8 @@ Page({
     this.setData({ type }, () => this.applyType())
   },
   pick(e) {
+    // 管理态下只做删除，不触发选中返回
+    if (this.data.manageMode) return
     const id = e.currentTarget.dataset.id
     this.finish((this._catIndex || {})[String(id)])
   },
@@ -180,6 +190,58 @@ Page({
       .catch((err) => {
         this.setData({ catAdding: false })
         wx.showToast({ title: err.message || '添加失败', icon: 'none' })
+      })
+  },
+  // ---------- 分类管理：长按自定义分类进入编辑态（仅创建者） ----------
+  onCatLongPress(e) {
+    if (this.data.manageMode) return
+    if (!this.data.isOwner) {
+      wx.showToast({ title: '仅创建者可管理分类', icon: 'none' })
+      return
+    }
+    const cat = (this._catIndex || {})[String(e.currentTarget.dataset.id)]
+    if (!cat) return
+    // 长按后个别基础库仍可能补一次 tap，记录时间戳避免误删
+    this._enterEditAt = Date.now()
+    if (wx.vibrateShort) wx.vibrateShort({ type: 'light' })
+    this.setData({ manageMode: true, activeId: '' })
+  },
+  // 编辑态「完成」退出（该按钮仅在编辑态出现，不占常驻入口）
+  exitEditMode() {
+    this.setData({ manageMode: false })
+  },
+  // 编辑态点自定义分类 = 删除；非编辑态 = 选中
+  onCatTap(e) {
+    if (!this.data.manageMode) {
+      this.pick(e)
+      return
+    }
+    if (this._enterEditAt && Date.now() - this._enterEditAt < 400) return
+    const cat = (this._catIndex || {})[String(e.currentTarget.dataset.id)]
+    if (!cat) return
+    const kind = this.data.type === 'income' ? '收入' : '支出'
+    wx.showModal({
+      title: '删除分类',
+      content: '删除「' + cat.name + '」？该分类下已有的' + kind + '记录会保留原分类信息，金额与统计都不受影响。',
+      confirmText: '删除',
+      confirmColor: '#fa5151',
+      success: (r) => {
+        if (!r.confirm) return
+        this._deleteCategory(cat)
+      }
+    })
+  },
+  _deleteCategory(cat) {
+    wx.showLoading({ title: '删除中' })
+    api.deleteCategory(cat.id)
+      .then(() => this.load())
+      .then(() => {
+        wx.hideLoading()
+        wx.showToast({ title: '已删除', icon: 'success' })
+      })
+      .catch((err) => {
+        wx.hideLoading()
+        wx.showToast({ title: err.message || '删除失败', icon: 'none' })
       })
   },
   // 弹层内部吞掉事件，避免点到遮罩关闭

@@ -1,66 +1,70 @@
 <!-- components/record-sheet/record-sheet.wxml —— 底部滑出记账表单（分类由全屏分类页选好后带入） -->
 <view class="record-page {{shown ? 'show' : ''}} {{closing ? 'closing' : ''}}" catchtap="onBackdropTap">
   <view class="record-backdrop" catchtouchmove="preventTouchMove"></view>
-  <view class="record-sheet" catchtap="stop" style="{{dragY > 0 ? 'transform: translateY(' + dragY + 'px); transition: none;' : ''}}">
+  <!-- kbHeight：键盘弹出高度，弹层整体上移避让，避免备注被键盘遮挡 -->
+  <view class="record-sheet" catchtap="stop" style="bottom: {{kbHeight}}px; max-height: {{kbHeight ? 'calc(100vh - ' + kbHeight + 'px)' : '88vh'}}; {{dragY > 0 ? 'transform: translateY(' + dragY + 'px); transition: none;' : ''}}">
     <view class="sheet-handle" catchtouchstart="onDragStart" catchtouchmove="onDragMove" catchtouchend="onDragEnd" catchtouchcancel="onDragEnd"></view>
 
-    <!-- 已选分类：点击重开全屏分类选择页 -->
-    <view class="cat-row" bindtap="openAllCats">
-      <view class="cr-ic">{{selectedIcon}}</view>
-      <text class="cr-name">{{selectedName || '未选择分类'}}</text>
-      <text class="cr-swap">更换分类</text>
-      <text class="cr-arrow">›</text>
-    </view>
-
-    <view class="amount-wrap">
-      <input class="amount-input" type="digit" placeholder="0.00" placeholder-class="amount-ph" value="{{amountText}}" bindinput="onAmount" adjust-position="{{false}}" />
-    </view>
-
-    <view class="info-card">
-      <picker mode="date" value="{{date}}" bindchange="onDate">
-        <view class="info-row">
-          <text class="info-label">日期</text>
-          <view class="info-value">{{date}} <text class="info-arrow">›</text></view>
-        </view>
-      </picker>
-      <view class="info-line"></view>
-      <picker mode="time" value="{{time}}" bindchange="onTime">
-        <view class="info-row">
-          <text class="info-label">时间</text>
-          <view class="info-value">{{time}} <text class="info-arrow">›</text></view>
-        </view>
-      </picker>
-      <view class="info-line"></view>
-      <view class="info-row">
-        <text class="info-label">备注</text>
-        <input class="note-input" placeholder="写点什么…" value="{{note}}" bindinput="onNote" adjust-position="{{false}}" />
+    <!-- 表单区放在 scroll-view 里：键盘弹出后可视区域变小，可滚动并把正在输入的项带进视野 -->
+    <scroll-view class="sheet-body" scroll-y scroll-into-view="{{scrollInto}}" scroll-with-animation="{{false}}">
+      <!-- 已选分类：点击重开全屏分类选择页 -->
+      <view id="f-cat" class="cat-row" bindtap="openAllCats">
+        <view class="cr-ic">{{selectedIcon}}</view>
+        <text class="cr-name">{{selectedName || '未选择分类'}}</text>
+        <text class="cr-swap">更换分类</text>
+        <text class="cr-arrow">›</text>
       </view>
-    </view>
 
-    <!-- 凭证图片：非必传，最多 3 张 -->
-    <view class="img-card">
-      <view class="img-head">
-        <text class="img-title">凭证图片</text>
-        <text class="img-tip">最多 {{imgMax}} 张 · 单张 ≤{{imgMaxText}}</text>
+      <view id="f-amount" class="amount-wrap">
+        <input class="amount-input" type="digit" placeholder="0.00" placeholder-class="amount-ph" value="{{amountText}}" bindinput="onAmount" bindfocus="onAmountFocus" adjust-position="{{false}}" />
       </view>
-      <view class="img-row">
-        <view wx:for="{{images}}" wx:key="url" class="img-item">
-          <image class="img-thumb" src="{{item.fullUrl}}" mode="aspectFill" data-url="{{item.fullUrl}}" bindtap="previewImage"></image>
-          <view class="img-del" data-index="{{index}}" catchtap="removeImage">×</view>
-        </view>
-        <view wx:if="{{images.length < imgMax}}" class="img-add" bindtap="chooseImage">
-          <text class="img-add-ic">＋</text>
-          <text class="img-add-txt">{{uploading ? '上传中' : '添加'}}</text>
+
+      <view class="info-card">
+        <picker mode="date" value="{{date}}" bindchange="onDate">
+          <view class="info-row">
+            <text class="info-label">日期</text>
+            <view class="info-value">{{date}} <text class="info-arrow">›</text></view>
+          </view>
+        </picker>
+        <view class="info-line"></view>
+        <picker mode="time" value="{{time}}" bindchange="onTime">
+          <view class="info-row">
+            <text class="info-label">时间</text>
+            <view class="info-value">{{time}} <text class="info-arrow">›</text></view>
+          </view>
+        </picker>
+        <view class="info-line"></view>
+        <view id="f-note" class="info-row">
+          <text class="info-label">备注</text>
+          <input class="note-input" placeholder="写点什么…" value="{{note}}" bindinput="onNote" bindfocus="onNoteFocus" adjust-position="{{false}}" />
         </view>
       </view>
-    </view>
 
-    <view class="save-btn {{(saving || uploading) ? 'disabled' : ''}}" bindtap="save">
-      <text wx:if="{{uploading && !saving}}">图片上传中…</text>
-      <text wx:elif="{{!saving}}">保存</text>
-      <view wx:else class="save-spinner"></view>
-    </view>
+      <!-- 凭证图片：非必传，最多 3 张 -->
+      <view class="img-card">
+        <view class="img-head">
+          <text class="img-title">凭证图片</text>
+          <text class="img-tip">最多 {{imgMax}} 张 · 单张 ≤{{imgMaxText}}</text>
+        </view>
+        <view class="img-row">
+          <view wx:for="{{images}}" wx:key="url" class="img-item">
+            <image class="img-thumb" src="{{item.fullUrl}}" mode="aspectFill" data-url="{{item.fullUrl}}" bindtap="previewImage"></image>
+            <view class="img-del" data-index="{{index}}" catchtap="removeImage">×</view>
+          </view>
+          <view wx:if="{{images.length < imgMax}}" class="img-add" bindtap="chooseImage">
+            <text class="img-add-ic">＋</text>
+            <text class="img-add-txt">{{uploading ? '上传中' : '添加'}}</text>
+          </view>
+        </view>
+      </view>
 
-    <view wx:if="{{editId}}" class="delete-link" bindtap="remove">删除这笔</view>
+      <view class="save-btn {{(saving || uploading) ? 'disabled' : ''}}" bindtap="save">
+        <text wx:if="{{uploading && !saving}}">图片上传中…</text>
+        <text wx:elif="{{!saving}}">保存</text>
+        <view wx:else class="save-spinner"></view>
+      </view>
+
+      <view wx:if="{{editId}}" class="delete-link" bindtap="remove">删除这笔</view>
+    </scroll-view>
   </view>
 </view>

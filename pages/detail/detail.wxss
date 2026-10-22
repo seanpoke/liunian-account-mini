@@ -35,6 +35,8 @@
 .amt.expense { color: var(--expense); }
 .amt.income { color: var(--income); }
 
+.load-tip { text-align: center; font-size: 22rpx; color: #b8b8b8; padding: 24rpx 0 8rpx; }
+
 .day-sum { display: flex; justify-content: flex-end; gap: 20rpx; font-size: 22rpx; color: #b0b0b0; padding: 12rpx 4rpx 24rpx; border-bottom: 2rpx solid var(--line); }
 .day-sum .b { color: #888; font-weight: 600; }
 .day-sum .income { color: var(--income); }

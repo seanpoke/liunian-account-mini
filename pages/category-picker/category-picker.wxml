@@ -6,14 +6,15 @@
         <view class="cp-tab {{type === 'expense' ? 'on' : ''}}" data-type="expense" bindtap="switchType">支出</view>
         <view class="cp-tab {{type === 'income' ? 'on' : ''}}" data-type="income" bindtap="switchType">收入</view>
       </view>
-      <!-- 右上角是微信胶囊，取消放左侧，避免点不到 -->
+      <!-- 右上角是微信胶囊，取消/完成放左侧，避免点不到；编辑态由长按分类进入 -->
       <view class="cp-cancel" bindtap="cancel">取消</view>
+      <view wx:if="{{manageMode}}" class="cp-manage" bindtap="exitEditMode">完成</view>
     </view>
   </view>
 
   <scroll-view class="cp-body" scroll-y="{{true}}" scroll-into-view="{{scrollToId}}" scroll-with-animation>
-    <!-- 版块一：常用（最近使用过的分类） -->
-    <block wx:if="{{recentList.length}}">
+    <!-- 版块一：常用（最近使用过的分类）；管理态下不展示 -->
+    <block wx:if="{{recentList.length && !manageMode}}">
       <view class="cp-sec-title">常用</view>
       <view class="cp-grid">
         <view wx:for="{{recentList}}" wx:key="id" id="rcat-{{item.id}}" class="cp-cell {{activeId === item.idStr ? 'on' : ''}}" data-id="{{item.id}}" bindtap="pick">
@@ -32,19 +33,27 @@
       </view>
     </view>
 
-    <!-- 版块三：自定义分类（家庭自建）+ 新增入口 -->
+    <!-- 版块三：自定义分类（家庭自建）+ 新增入口；管理态下点分类=删除 -->
     <view class="cp-sec-title">自定义分类</view>
     <view class="cp-grid">
-      <view wx:for="{{customCats}}" wx:key="id" id="cat-{{item.id}}" class="cp-cell {{activeId === item.idStr ? 'on' : ''}}" data-id="{{item.id}}" bindtap="pick">
-        <view class="cp-ic">{{item.icon}}</view>
+      <view wx:for="{{customCats}}" wx:key="id" id="cat-{{item.id}}"
+            class="cp-cell {{!manageMode && activeId === item.idStr ? 'on' : ''}}"
+            data-id="{{item.id}}" bindtap="onCatTap" bindlongpress="onCatLongPress">
+        <view class="cp-ic-wrap">
+          <view class="cp-ic">{{item.icon}}</view>
+          <view wx:if="{{manageMode}}" class="cp-del">−</view>
+        </view>
         <view class="cp-name">{{item.name}}</view>
       </view>
-      <view wx:if="{{canAddCat}}" class="cp-cell" bindtap="addCategory">
+      <view wx:if="{{canAddCat && !manageMode}}" class="cp-cell" bindtap="addCategory">
         <view class="cp-ic cp-ic-add">＋</view>
         <view class="cp-name">新增</view>
       </view>
     </view>
-    <view class="cp-tip">点击分类即可选中并返回</view>
+    <view wx:if="{{!customCats.length}}" class="cp-tip">还没有自定义分类</view>
+    <view wx:elif="{{manageMode}}" class="cp-tip">点击自定义分类即可删除，历史账单不受影响</view>
+    <view wx:elif="{{isOwner}}" class="cp-tip">点击分类选中并返回 · 长按自定义分类可管理</view>
+    <view wx:else class="cp-tip">点击分类即可选中并返回</view>
   </scroll-view>
 
   <!-- 新增分类弹层（底部滑出：图标 + 名称 + 取消/创建） -->

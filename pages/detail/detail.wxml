@@ -42,6 +42,8 @@
         </view>
       </view>
     </view>
+    <!-- 分页加载状态：触底自动加载下一页 -->
+    <view wx:if="{{groups.length}}" class="load-tip">{{loading ? '加载中…' : (hasMore ? '上滑加载更多' : '没有更多了')}}</view>
     <view class="tab-clear"></view>
   </view>
 

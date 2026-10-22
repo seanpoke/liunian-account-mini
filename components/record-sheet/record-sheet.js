@@ -41,17 +41,39 @@ Component({
     uploading: false,
     uploadCount: 0,
     saving: false,
-    dragY: 0
+    dragY: 0,
+    // 键盘高度：弹层据此整体上移，避免备注等输入项被键盘遮挡
+    kbHeight: 0,
+    // 表单区滚动定位（正在输入的项滚进视野）
+    scrollInto: ''
   },
   lifetimes: {
     attached() {
       this.setData({ date: fmt.today(), time: fmt.fmtTime(new Date()) })
+      // 只有备注（f-note）需要避让键盘；金额用数字键盘时不顶起弹层
+      this._onKb = (res) => {
+        const h = Math.max(0, (res && res.height) || 0)
+        this._kbRaw = h
+        const lift = this._focusId === 'f-note' ? h : 0
+        if (lift === this.data.kbHeight) return
+        this.setData({ kbHeight: lift }, () => {
+          // 可视区域变化后，把正在输入的项重新滚进视野
+          if (this._focusId) this.scrollToField(this._focusId)
+        })
+      }
+      if (wx.onKeyboardHeightChange) wx.onKeyboardHeightChange(this._onKb)
+    },
+    detached() {
+      if (wx.offKeyboardHeightChange && this._onKb) wx.offKeyboardHeightChange(this._onKb)
+      this._onKb = null
     }
   },
   methods: {
     onVisible(val) {
       if (val) {
-        this.setData({ shown: true, closing: false, dragY: 0 })
+        // 重新打开时清掉上次的聚焦/键盘状态
+        this._focusId = ''
+        this.setData({ shown: true, closing: false, dragY: 0, kbHeight: 0 })
         // 进入编辑模式
         if (this.data.editId) this.loadEdit(this.data.editId)
         else this.resetForm()
@@ -68,7 +90,8 @@ Component({
         type: 'expense', amountText: '',
         selectedCatId: '', selectedIcon: '', selectedName: '',
         note: '', date: fmt.today(), time: fmt.fmtTime(new Date()),
-        images: [], uploading: false, uploadCount: 0, saving: false
+        images: [], uploading: false, uploadCount: 0, saving: false,
+        scrollInto: ''
       }
       if (p && p.id !== undefined && p.id !== null) {
         patch.type = p.type === 'income' ? 'income' : 'expense'
@@ -119,6 +142,23 @@ Component({
     },
     onAmount(e) { this.setData({ amountText: e.detail.value }) },
     onNote(e) { this.setData({ note: e.detail.value }) },
+    // 金额：数字键盘不顶起弹层，只把金额本身滚进视野
+    onAmountFocus() {
+      this._focusId = 'f-amount'
+      if (this.data.kbHeight) this.setData({ kbHeight: 0 })
+      this.scrollToField('f-amount')
+    },
+    // 备注：需要避让键盘，否则输入内容会被挡住
+    onNoteFocus() {
+      this._focusId = 'f-note'
+      // 从金额（数字键盘）切过来时，键盘高度可能不变而不触发回调，这里先用最近一次高度垫上
+      if (this._kbRaw && this._kbRaw !== this.data.kbHeight) this.setData({ kbHeight: this._kbRaw })
+      this.scrollToField('f-note')
+    },
+    scrollToField(id) {
+      // 先清空再赋值，保证连续聚焦同一项也能触发滚动
+      this.setData({ scrollInto: '' }, () => this.setData({ scrollInto: id }))
+    },
     onDate(e) { this.setData({ date: e.detail.value }) },
     onTime(e) { this.setData({ time: e.detail.value }) },
 
@@ -202,6 +242,8 @@ Component({
       } })
     },
     close() {
+      this._focusId = ''
+      if (wx.hideKeyboard) wx.hideKeyboard()
       this.triggerEvent('close')
       this.setData({ closing: true })
       setTimeout(() => this.setData({ shown: false, closing: false }), 280)

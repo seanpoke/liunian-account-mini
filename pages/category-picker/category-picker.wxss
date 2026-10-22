@@ -29,6 +29,12 @@
   font-size: 30rpx; color: #646a73; padding: 16rpx 24rpx;
 }
 .cp-cancel:active { opacity: .6; }
+/* 编辑态「完成」（长按自定义分类进入后才出现），放在「取消」右侧避开微信胶囊 */
+.cp-manage {
+  position: absolute; left: 140rpx; top: 50%; transform: translateY(-50%);
+  font-size: 30rpx; color: #07C160; padding: 16rpx 24rpx;
+}
+.cp-manage:active { opacity: .6; }
 
 .cp-body { flex: 1; min-height: 0; }
 .cp-sec-title {
@@ -56,6 +62,14 @@
 .cp-ic-add {
   background: #fff; border: 2rpx dashed #d8d8d8; color: #bbb;
   box-sizing: border-box; font-size: 40rpx;
+}
+/* 管理态删除角标（.cp-ic 有 overflow:hidden，角标放在外层容器上） */
+.cp-ic-wrap { position: relative; }
+.cp-del {
+  position: absolute; top: -8rpx; right: -8rpx;
+  width: 40rpx; height: 40rpx; border-radius: 50%;
+  background: #fa5151; color: #fff;
+  font-size: 32rpx; line-height: 34rpx; text-align: center;
 }
 .cp-name {
   font-size: 24rpx; color: #646a73; margin-top: 14rpx;

@@ -19,9 +19,12 @@
   border-radius: 40rpx 40rpx 0 0;
   padding: 24rpx 32rpx calc(28rpx + env(safe-area-inset-bottom));
   transform: translateY(100%);
-  transition: transform .28s cubic-bezier(.2, .8, .2, 1);
-  max-height: 88vh; overflow-y: auto;
+  transition: transform .28s cubic-bezier(.2, .8, .2, 1), bottom .2s ease, max-height .2s ease;
+  max-height: 88vh;
+  /* 表单区自己滚动（见 .sheet-body），键盘弹出时可视高度变小也能滚到正在输入的位置 */
+  display: flex; flex-direction: column; overflow: hidden;
 }
+.sheet-body { flex: 1 1 auto; min-height: 0; }
 .record-page.show .record-sheet { transform: translateY(0); }
 .record-page.closing .record-sheet { transform: translateY(100%); }
 
