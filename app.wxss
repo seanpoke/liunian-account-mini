@@ -12,6 +12,8 @@ page {
   --income: #07C160;
   --expense: #fa5151;
   --warn: #ffb020;
+  /* 储蓄取出专用色：取出不是支出，禁止复用 --expense */
+  --saving-out: #ff8f1f;
   background: var(--bg);
   color: var(--text);
   font-family: -apple-system, "PingFang SC", "Helvetica Neue", Helvetica, sans-serif;

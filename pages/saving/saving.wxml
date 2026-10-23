@@ -1,0 +1,271 @@
+<view class="page">
+  <!-- 账户管理入口只在「全部账户」面板底部，导航栏不再放「管理」 -->
+  <navigation-bar title="家庭储蓄" back="{{true}}" background="#ffffff"></navigation-bar>
+
+  <view class="page-body">
+    <view class="pad">
+      <!-- 余额卡：标题随筛选变化，避免把单账户余额误读成总额 -->
+      <view class="bal-card">
+        <view class="bc-head">
+          <view class="bc-title-wrap">
+            <text class="bc-title">{{titleName}}</text>
+            <text class="bc-sub" wx:if="{{subText}}">{{subText}}</text>
+          </view>
+          <text class="bc-adjust" bindtap="openAdjust">更新余额</text>
+        </view>
+        <view class="bc-num">¥{{balanceText}}</view>
+        <view class="bc-stats">
+          <view class="bc-stat">
+            <text class="bs-k">本月存入</text>
+            <text class="bs-v in">+{{monthInText}}</text>
+          </view>
+          <view class="bc-div"></view>
+          <view class="bc-stat">
+            <text class="bs-k">本月取出</text>
+            <text class="bs-v out">−{{monthOutText}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 账户区：横滚负责"最近的几个"，右上「全部账户」给账户多的人一个不用滑的入口 -->
+      <view class="acct-head">
+        <text class="acct-h">账户</text>
+        <text class="acct-more" bindtap="openAccountFilter">全部账户 ›</text>
+      </view>
+      <scroll-view scroll-x class="acct-strip" enhanced show-scrollbar="{{false}}">
+        <view class="acct {{accId === 0 ? 'on' : ''}}" data-id="0" bindtap="pickFilter">
+          <text class="an">全部</text>
+          <text class="ab gray">{{accountCount}} 个账户</text>
+        </view>
+        <view wx:for="{{accounts}}" wx:key="id"
+              class="acct {{accId === item.id ? 'on' : ''}} {{item.status === 0 ? 'off' : ''}}"
+              data-id="{{item.id}}" bindtap="pickFilter">
+          <view class="an">{{item.icon}} {{item.name}}</view>
+          <view class="ab">{{item.balanceText}}</view>
+          <text class="tag-off" wx:if="{{item.status === 0}}">已停用</text>
+        </view>
+      </scroll-view>
+
+      <!-- 流水：按月分组 + 当月小计 -->
+      <block wx:if="{{groups.length}}">
+        <view wx:for="{{groups}}" wx:key="key" wx:for-item="g">
+          <!-- 月份头：左边月份 + 存取明细，右边单独给「当月差额」，不再把三个数塞进一行 -->
+          <view class="month-head">
+            <view class="mh-left">
+              <text class="mh-month">{{g.label}}</text>
+              <text class="mh-sub">存入 +{{g.inText}} · 取出 −{{g.outText}}</text>
+            </view>
+            <view class="mh-net">
+              <text class="mh-net-k">当月差额</text>
+              <view class="mh-net-v">
+                <text class="mh-sign {{g.netCls}}" wx:if="{{g.netSign}}">{{g.netSign}}</text>
+                <text class="mh-num {{g.netCls}}">{{g.netText}}</text>
+              </view>
+            </view>
+          </view>
+          <view class="trans-card">
+            <view wx:for="{{g.items}}" wx:key="id" wx:for-item="t" class="trans"
+                  data-id="{{t.id}}" bindtap="onRecordTap">
+              <view class="ic">{{t.icon}}</view>
+              <view class="mid">
+                <view class="line1">
+                  <view class="tcat">{{t.title}}<text class="tag-save" wx:if="{{t.tag}}">{{t.tag}}</text></view>
+                  <view class="amt {{t.amountCls}}">
+                    <text class="amt-sign" wx:if="{{t.sign}}">{{t.sign}}</text>
+                    <text class="amt-num">{{t.amountText}}</text>
+                  </view>
+                </view>
+                <view class="note">{{t.sub}}</view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view class="load-tip">{{loading ? '加载中…' : (hasMore ? '上滑加载更多' : '没有更多了')}}</view>
+      </block>
+      <view class="empty" wx:else>
+        <view class="empty-ic">🐷</view>
+        <view class="empty-t">{{loading ? '加载中…' : '还没有储蓄流水'}}</view>
+        <view class="empty-s" wx:if="{{!loading}}">点下方「记一笔」开始存第一笔</view>
+      </view>
+
+      <view class="action-clear"></view>
+    </view>
+  </view>
+
+  <!-- 底部固定操作条：主按钮进弹层后方向可选，所以文案不能写「存入」，用「记一笔」 -->
+  <view class="act-bar">
+    <button class="b1 {{accOptions.length < 2 ? 'off' : ''}}" bindtap="openTransfer">转账</button>
+    <button class="b2" bindtap="openDeposit">记一笔</button>
+  </view>
+
+  <!-- 遮罩 -->
+  <view class="mask {{sheet ? 'show' : ''}}" bindtap="closeSheet" catchtouchmove="noop"></view>
+
+  <!-- ============ 存入 / 取出（同一弹层，顶部分段切换） ============ -->
+  <view class="sheet {{sheet === 'saving' ? 'show' : ''}}" wx:if="{{sheet === 'saving'}}">
+    <view class="handle"></view>
+
+    <!-- 方向是一等公民：不用关掉重开，切换后校验 / 预览 / 按钮立刻跟随 -->
+    <view class="seg">
+      <view class="seg-item {{dir === 'in' ? 'on in' : ''}}" data-dir="in" bindtap="switchDir">存入</view>
+      <view class="seg-item {{dir === 'out' ? 'on out' : ''}}" data-dir="out" bindtap="switchDir">取出</view>
+    </view>
+
+    <view class="amount-wrap {{errText ? 'err' : ''}}">
+      <input class="amount-input" type="digit" value="{{amountText}}" bindinput="onAmount" placeholder="0.00" placeholder-class="amount-ph" />
+    </view>
+    <view class="preview {{errText ? 'bad' : ''}}">{{previewText}}</view>
+    <view class="err" wx:if="{{errText}}">{{errText}}</view>
+
+    <!-- 快捷金额：两个方向共享前三颗芯片，取出多一颗「全部」（存入"全部"没有意义） -->
+    <view class="quick">
+      <text data-v="500" bindtap="quickAmount">500</text>
+      <text data-v="1000" bindtap="quickAmount">1,000</text>
+      <text data-v="2000" bindtap="quickAmount">2,000</text>
+      <text wx:if="{{dir === 'out'}}" bindtap="fillAll">全部</text>
+    </view>
+
+    <view class="info-card">
+      <view class="field" data-back="saving" bindtap="openPick">
+        <text class="lbl">账户</text>
+        <text class="v">{{cur.icon}} {{cur.name}} ›</text>
+      </view>
+      <view class="field last">
+        <text class="lbl">日期</text>
+        <picker mode="date" value="{{date}}" bindchange="onDate">
+          <view class="v">{{date}} ›</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="save {{dir === 'out' ? 'out' : ''}} {{errText || submitting ? 'disabled' : ''}}" bindtap="submitSaving">{{submitting ? '保存中…' : btnText}}</view>
+  </view>
+
+  <!-- ============ 更新余额 ============ -->
+  <view class="sheet {{sheet === 'adjust' ? 'show' : ''}}" wx:if="{{sheet === 'adjust'}}">
+    <view class="handle"></view>
+    <view class="sheet-head">
+      <text class="sh-title">更新余额 · {{cur.name}}</text>
+      <text class="sh-cancel" bindtap="closeSheet">取消</text>
+    </view>
+
+    <!-- 用一个明确的输入框承接金额：裸的居中大数字在这页会被当成"标题"而不是"要填的东西" -->
+    <view class="info-card">
+      <view class="field last">
+        <text class="lbl">实际余额</text>
+        <view class="money-wrap">
+          <text class="money-cur">¥</text>
+          <input class="money-input" type="digit" value="{{realText}}" bindinput="onReal" placeholder="0.00" placeholder-class="amount-ph" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 只在填了金额后给一行结论（差额 → 会记成哪一笔），不预先展示账面余额 -->
+    <view class="preview {{deltaDir ? 'live' : ''}}" wx:if="{{deltaLine}}">{{deltaLine}}</view>
+
+    <view class="confirm" wx:if="{{needConfirm}}" bindtap="toggleAdjustCheck">
+      <view class="cb {{adjustChecked ? 'on' : ''}}">{{adjustChecked ? '✓' : ''}}</view>
+      <text>我确认这是账户当前的实际余额（24h 内二次校准需确认）</text>
+    </view>
+    <view class="hint" wx:if="{{lastAdjustText}}">上次校准：{{lastAdjustText}}</view>
+    <view class="save {{!deltaDir || submitting ? 'disabled' : ''}}" bindtap="submitAdjust">{{submitting ? '提交中…' : '提交'}}</view>
+  </view>
+
+  <!-- ============ 转账 ============ -->
+  <!-- 不要标题：方向本身（转出 → 转入）就是这张卡的开场，再写「账户转账」是重复 -->
+  <view class="sheet {{sheet === 'transfer' ? 'show' : ''}}" wx:if="{{sheet === 'transfer'}}">
+    <view class="handle"></view>
+
+    <!-- 两行就够：上一行是角色（转出 / 转入），下一行「图标+账户名 · 余额」同一行读完，不再三层堆叠 -->
+    <view class="pair">
+      <view class="pair-side" bindtap="openPickForFrom">
+        <text class="pair-lbl">转出</text>
+        <view class="pair-line">
+          <text class="pair-name">{{transFrom.icon}} {{transFrom.name}}</text>
+          <text class="pair-bal">{{transFrom.balanceText}}</text>
+        </view>
+      </view>
+      <view class="pair-arrow" bindtap="swapAccounts">→</view>
+      <view class="pair-side" bindtap="openPickForTo">
+        <text class="pair-lbl">转入</text>
+        <view class="pair-line">
+          <text class="pair-name">{{transTo.icon}} {{transTo.name}}</text>
+          <text class="pair-bal">{{transTo.balanceText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="amount-wrap">
+      <input class="amount-input" type="digit" value="{{amountText}}" bindinput="onAmount" placeholder="0.00" placeholder-class="amount-ph" />
+    </view>
+    <view class="preview {{transferBad ? 'bad' : ''}}">{{transferPreview}}</view>
+
+    <!-- 转出多了「全部」：把该账户的钱一次挪走是最常见的一次转账 -->
+    <view class="quick">
+      <text data-v="500" bindtap="quickAmount">500</text>
+      <text data-v="1000" bindtap="quickAmount">1,000</text>
+      <text data-v="2000" bindtap="quickAmount">2,000</text>
+      <text bindtap="quickAll">全部</text>
+    </view>
+
+    <view class="info-card">
+      <view class="field">
+        <text class="lbl">日期</text>
+        <picker mode="date" value="{{date}}" bindchange="onDate">
+          <view class="v">{{date}} ›</view>
+        </picker>
+      </view>
+      <view class="field last">
+        <text class="lbl">备注</text>
+        <input class="v-input" value="{{note}}" bindinput="onNote" placeholder="写点什么…" placeholder-class="ph" />
+      </view>
+    </view>
+    <view class="save {{errText || submitting ? 'disabled' : ''}}" bindtap="submitTransfer">{{submitting ? '保存中…' : '保存'}}</view>
+  </view>
+
+  <!-- ============ 账户选择（半屏） ============ -->
+  <view class="sheet pick {{sheet === 'pick' ? 'show' : ''}}" wx:if="{{sheet === 'pick'}}">
+    <view class="handle"></view>
+    <view class="sheet-head">
+      <text class="sh-title">{{pickTarget === 'filter' ? '切换账户' : '选择账户'}}</text>
+      <text class="sh-cancel" bindtap="backFromPick">返回</text>
+    </view>
+    <view class="pick-hint">{{pickTarget === 'filter' ? '按账户查看余额与流水；「全部账户」回到合计' : (pickTarget === 'from' ? '「转入」那行已置灰，不能自己转给自己' : (pickTarget === 'to' ? '「转出」那行已置灰，不能自己转给自己' : '只列出启用账户；停用账户不出现在这里'))}}</view>
+    <view class="pick-list">
+      <view wx:for="{{pickList}}" wx:key="id"
+            class="pick-row {{item.disabled ? 'off' : ''}}"
+            data-id="{{item.id}}" data-disabled="{{item.disabled}}" bindtap="chooseAccount">
+        <view class="pi">{{item.icon}}</view>
+        <view class="pn">{{item.name}}<text class="ck" wx:if="{{item.checked}}">✓</text></view>
+        <text class="pb">¥{{item.balanceText}}</text>
+      </view>
+    </view>
+    <!-- 账户面板底部给「添加 / 管理账户」的固定入口：只在筛选模式下出现，选账户场景不打扰 -->
+    <view class="pick-foot" wx:if="{{pickTarget === 'filter'}}" bindtap="goAccounts">＋ 添加 / 管理账户</view>
+  </view>
+
+  <!-- ============ 编辑流水 ============ -->
+  <view class="sheet {{sheet === 'edit' ? 'show' : ''}}" wx:if="{{sheet === 'edit'}}">
+    <view class="handle"></view>
+    <view class="sheet-bar">
+      <text class="sheet-cancel" bindtap="closeSheet">取消</text>
+    </view>
+    <view class="amount-wrap">
+      <input class="amount-input" type="digit" value="{{amountText}}" bindinput="onAmount" placeholder="0.00" placeholder-class="amount-ph" />
+    </view>
+    <view class="info-card">
+      <!-- 账户不可改：整行置灰 + 标签，避免用户反复点它以为能切 -->
+      <view class="field ro">
+        <view class="lbl">账户<text class="ro-tag">不可修改</text></view>
+        <text class="v">{{cur.icon}} {{cur.name}}</text>
+      </view>
+      <view class="field last">
+        <text class="lbl">日期</text>
+        <picker mode="date" value="{{date}}" bindchange="onDate">
+          <view class="v">{{date}} ›</view>
+        </picker>
+      </view>
+    </view>
+    <view class="save {{submitting ? 'disabled' : ''}}" bindtap="submitEdit">{{submitting ? '保存中…' : '保存'}}</view>
+  </view>
+</view>

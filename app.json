@@ -4,6 +4,8 @@
     "pages/index/index",
     "pages/stats/stats",
     "pages/detail/detail",
+    "pages/saving/saving",
+    "pages/saving-accounts/saving-accounts",
     "pages/category-picker/category-picker",
     "pages/invite/invite",
     "pages/invite/confirm",

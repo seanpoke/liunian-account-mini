@@ -1,0 +1,66 @@
+<view class="page">
+  <navigation-bar title="账户管理" back="{{true}}" background="#ffffff"></navigation-bar>
+
+  <view class="page-body">
+    <view class="pad">
+      <view class="tip-card">
+        <text class="tip-t">共 {{total}} 个账户</text>
+        <text class="tip-s">预置账户只读：不可改名、排序、停用或删除。自定义账户最多 20 个。</text>
+      </view>
+
+      <view class="list-card">
+        <view wx:for="{{accounts}}" wx:key="id" class="arow" data-id="{{item.id}}" bindtap="onTap">
+          <view class="aic">{{item.icon}}</view>
+          <view class="amid">
+            <view class="aname">
+              {{item.name}}
+              <text class="atag sys" wx:if="{{item.isSystem}}">预置</text>
+              <text class="atag off" wx:if="{{item.status === 0}}">已停用</text>
+            </view>
+            <view class="asub">{{item.recordCount || 0}} 条记录</view>
+          </view>
+          <view class="aright">
+            <text class="abal {{item.status === 0 ? 'muted' : ''}}">¥{{item.balanceText}}</text>
+            <text class="aarrow">{{item.isSystem ? '' : '›'}}</text>
+          </view>
+        </view>
+
+        <!-- 新增入口放在列表末尾：跟着最后一条账户走，符合"再加一条"的直觉 -->
+        <view class="add-card {{canAdd ? '' : 'off'}}" wx:if="{{isOwner}}" bindtap="openNew">
+          <text class="add-plus">＋</text>
+          <text class="add-t">{{canAdd ? '新建账户' : '已达上限 ' + customCount + '/' + 20}}</text>
+        </view>
+      </view>
+
+      <view class="foot-hint" wx:if="{{!isOwner}}">只有家庭创建者可以新建或修改账户。</view>
+      <view class="foot-hint" wx:else>余额不为 0 的账户不能删除，请先转出或取出。</view>
+    </view>
+  </view>
+
+  <!-- 新建 / 编辑 -->
+  <view class="mask {{sheet ? 'show' : ''}}" bindtap="closeSheet" catchtouchmove="noop"></view>
+  <view class="sheet {{sheet === 'form' ? 'show' : ''}}" wx:if="{{sheet === 'form'}}">
+    <view class="handle"></view>
+    <view class="sheet-title">{{editing ? '修改账户' : '新建账户'}}</view>
+
+    <view class="info-card">
+      <view class="field">
+        <text class="lbl">名称</text>
+        <input class="v-input" value="{{name}}" bindinput="onName" placeholder="如：招行卡、余额宝" placeholder-class="ph" maxlength="16" />
+      </view>
+      <!-- 图标可以直接敲 emoji：网格只是备选，不是唯一来源 -->
+      <view class="field last">
+        <text class="lbl">图标</text>
+        <input class="v-input icon-input" value="{{icon}}" bindinput="onIconInput" placeholder="仅支持一个 emoji" placeholder-class="ph" maxlength="8" />
+      </view>
+    </view>
+
+    <view class="icon-grid">
+      <view wx:for="{{icons}}" wx:key="*this" class="ic-item {{icon === item ? 'on' : ''}}" data-ic="{{item}}" bindtap="pickIcon">{{item}}</view>
+    </view>
+
+    <view class="err" wx:if="{{errText}}">{{errText}}</view>
+    <view class="save {{submitting ? 'disabled' : ''}}" bindtap="submitForm">{{submitting ? '保存中…' : '保存'}}</view>
+    <view class="hint" wx:if="{{editing}}">停用 / 删除请在列表里点该账户操作；预置账户不支持任何修改。</view>
+  </view>
+</view>

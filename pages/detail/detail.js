@@ -22,6 +22,8 @@ function decorate(t) {
   const time = t.time || (t.createdAt ? t.createdAt.slice(11, 16) : '')
   t.sub = [t.note || '无备注', t.nickname, time].filter(Boolean).join(' · ')
   t.hasImage = Array.isArray(t.images) && t.images.length > 0
+  // 「储蓄」小标：从储蓄支付的账单 / 到账即存的收入
+  t.savingLinked = !!(t.savingLinked || t.savingRecordId)
   return t
 }
 

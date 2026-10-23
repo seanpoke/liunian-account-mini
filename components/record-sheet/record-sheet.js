@@ -41,6 +41,20 @@ Component({
     uploading: false,
     uploadCount: 0,
     saving: false,
+    // ---- 储蓄联动（第二本账）----
+    savingOn: false,            // 支出=从储蓄支付；收入=同时存入
+    savingAccounts: [],         // 启用账户
+    savingAcc: null,            // 当前选中的储蓄账户
+    savingAccBalText: '0.00',
+    savingLeftText: '0.00',
+    savingOver: false,
+    savingErr: '',
+    savingLinked: false,        // 编辑态：该笔已关联储蓄，只读展示
+    savingLinkedName: '',
+    savingAccId: 0,             // 组合记录配对的账户
+    savingOriginal: 0,          // 组合记录原来的取出金额（分）
+    savingOriginalText: '',     // 上面这个金额的展示值（分 → 元）
+    savingCapText: '',          // 改金额上限 = 账户当前余额 + 原取出金额
     dragY: 0,
     // 键盘高度：弹层据此整体上移，避免备注等输入项被键盘遮挡
     kbHeight: 0,
@@ -77,6 +91,8 @@ Component({
         // 进入编辑模式
         if (this.data.editId) this.loadEdit(this.data.editId)
         else this.resetForm()
+        // 每次打开都刷新账户与余额（可能刚存过 / 新建过账户）
+        this.loadSavingAccounts()
       } else if (this.data.shown) {
         this.setData({ closing: true })
         setTimeout(() => this.setData({ shown: false, closing: false }), 280)
@@ -91,6 +107,8 @@ Component({
         selectedCatId: '', selectedIcon: '', selectedName: '',
         note: '', date: fmt.today(), time: fmt.fmtTime(new Date()),
         images: [], uploading: false, uploadCount: 0, saving: false,
+        savingOn: false, savingAcc: null, savingOver: false, savingErr: '',
+        savingLinked: false, savingLinkedName: '',
         scrollInto: ''
       }
       if (p && p.id !== undefined && p.id !== null) {
@@ -101,9 +119,92 @@ Component({
       }
       this.setData(patch)
     },
+    // ---------- 储蓄联动（第二本账） ----------
+    // 账户列表只在打开弹层时拉一次；账户选择用 actionSheet，避免再叠一层半屏
+    loadSavingAccounts() {
+      api.getSavingAccounts().then((res) => {
+        // 接口直接返回数组；只保留启用账户
+        const raw = Array.isArray(res) ? res : ((res && res.list) || [])
+        const list = raw.filter((a) => a.status === 1)
+        const first = list.length ? list[0] : null
+        this.setData({
+          savingAccounts: list,
+          savingAcc: this.data.savingAcc || first
+        })
+        this.calcSaving()
+        this.updateSavingCap()
+      }).catch(() => {})
+    },
+
+    // 组合记录改金额的上限 = 该账户当前余额 + 原取出金额（与后端口径一致）
+    updateSavingCap() {
+      if (!this.data.savingLinked) return
+      const acc = this.data.savingAccounts.filter((a) => a.id === Number(this.data.savingAccId))[0]
+      if (!acc) return
+      this.setData({
+        savingCapText: fmt.formatMoney(acc.balance + (this.data.savingOriginal || 0)),
+        savingAccBalText: fmt.formatMoney(acc.balance),
+        savingOriginalText: fmt.formatMoney(this.data.savingOriginal || 0)
+      })
+    },
+
+    onSavingToggle(e) {
+      const on = e.detail.value
+      const acc = this.data.savingAcc || this.data.savingAccounts[0] || null
+      if (on && !acc) {
+        wx.showToast({ title: '还没有可用的储蓄账户', icon: 'none' })
+        return this.setData({ savingOn: false })
+      }
+      this.setData({ savingOn: on, savingAcc: acc })
+      this.calcSaving()
+    },
+
+    openSavingPick() {
+      const list = this.data.savingAccounts
+      if (!list.length) {
+        wx.showToast({ title: '还没有可用的储蓄账户', icon: 'none' })
+        return
+      }
+      wx.showActionSheet({
+        itemList: list.map((a) => a.icon + ' ' + a.name + '（¥' + fmt.formatMoney(a.balance) + '）'),
+        success: (r) => {
+          const acc = list[r.tapIndex]
+          if (!acc) return
+          this.setData({ savingAcc: acc })
+          this.calcSaving()
+        }
+      })
+    },
+
+    // 支出：余额不足要在前端先拦一次（后端事务内还会再校验）
+    calcSaving() {
+      // 编辑已关联储蓄的记录：金额上限由服务端按「当前余额 + 原取出」判定，前端不做余额拦截
+      if (this.data.savingLinked) return
+      // 开关没开就不做余额校验，避免「还没用储蓄」却先报红字
+      if (!this.data.savingOn) {
+        this.setData({ savingOver: false, savingErr: '' })
+        return
+      }
+      const acc = this.data.savingAcc
+      if (!acc) {
+        this.setData({ savingOver: false, savingErr: '', savingAccBalText: '0.00', savingLeftText: '0.00' })
+        return
+      }
+      const amount = fmt.yuanToFen(this.data.amountText)
+      const left = acc.balance - amount
+      const over = this.data.type === 'expense' && left < 0
+      this.setData({
+        savingAccBalText: fmt.formatMoney(acc.balance),
+        savingLeftText: fmt.formatMoney(Math.abs(left)),
+        savingOver: over,
+        savingErr: over ? '该账户余额不足，最多可支付 ¥' + fmt.formatMoney(acc.balance) : ''
+      })
+    },
+
     loadEdit(id) {
       api.getTransaction(id).then((t) => {
         const type = t.type === 'income' ? 'income' : 'expense'
+        const linked = !!t.savingLinked
         this.setData({
           type,
           amountText: fmt.fenToYuan(t.amount).toFixed(2),
@@ -113,8 +214,14 @@ Component({
           date: t.date,
           time: t.time || (t.createdAt ? t.createdAt.slice(11, 16) : ''),
           note: t.note,
-          images: (t.images || []).map((u) => ({ url: u, fullUrl: fmt.imgUrl(u) }))
-        })
+          images: (t.images || []).map((u) => ({ url: u, fullUrl: fmt.imgUrl(u) })),
+          // 已关联储蓄的记录：开关只读展示，需改支付方式请删除后重录
+          savingLinked: linked,
+          savingLinkedName: t.savingAccountName || '',
+          savingAccId: t.savingAccountId || 0,
+          savingOriginal: t.amount || 0,
+          savingOn: linked
+        }, () => { this.calcSaving(); this.updateSavingCap() })
       }).catch((e) => wx.showToast({ title: e.message, icon: 'none' }))
     },
     // 更换分类：重开全屏分类选择页（可顺便切支出/收入）
@@ -133,14 +240,23 @@ Component({
     applyPickedCat(cat) {
       if (!cat || cat.id === undefined || cat.id === null) return
       const type = cat.type === 'income' ? 'income' : 'expense'
+      const changed = type !== this.data.type
       this.setData({
         type,
         selectedCatId: cat.id,
         selectedIcon: cleanIcon(cat.icon, type),
-        selectedName: cat.name || ''
+        selectedName: cat.name || '',
+        // 收支方向变了，储蓄联动语义也变（支出=取出 / 收入=存入），一律重置为关
+        savingOn: changed ? false : this.data.savingOn,
+        savingOver: false,
+        savingErr: ''
       })
+      this.calcSaving()
     },
-    onAmount(e) { this.setData({ amountText: e.detail.value }) },
+    onAmount(e) {
+      this.setData({ amountText: e.detail.value })
+      this.calcSaving()
+    },
     onNote(e) { this.setData({ note: e.detail.value }) },
     // 金额：数字键盘不顶起弹层，只把金额本身滚进视野
     onAmountFocus() {
@@ -218,10 +334,20 @@ Component({
       if (!amount) { wx.showToast({ title: '请输入金额', icon: 'none' }); return }
       const categoryId = typeof d.selectedCatId === 'number' ? d.selectedCatId : Number(d.selectedCatId)
       if (!categoryId) { wx.showToast({ title: '请选择分类', icon: 'none' }); return }
+      // 储蓄联动：支出=从储蓄支付（余额不足前端先拦一次），收入=同时存入
+      const savingOn = d.savingOn && !d.savingLinked
+      if (savingOn) {
+        if (!d.savingAcc) { wx.showToast({ title: '请选择储蓄账户', icon: 'none' }); return }
+        if (d.type === 'expense' && amount > d.savingAcc.balance) {
+          wx.showToast({ title: '该账户最多可支付 ¥' + fmt.formatMoney(d.savingAcc.balance), icon: 'none' })
+          return
+        }
+      }
       const payload = {
         type: d.type, amount, categoryId, date: d.date, time: d.time, note: d.note,
         images: d.images.map((i) => i.url)
       }
+      if (savingOn) payload.savingAccountId = d.savingAcc.id
       this.setData({ saving: true })
       const p = d.editId ? api.updateTransaction(d.editId, payload) : api.createTransaction(payload)
       p.then(() => {

@@ -125,3 +125,57 @@
   text-align: center; color: #fa5151; font-size: 28rpx; margin-top: 28rpx; padding: 12rpx 0;
 }
 .delete-link:active { opacity: .7; }
+
+/* ===== 储蓄联动：开关行 + 折叠卡（两行、≤120rpx） ===== */
+.saving-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22rpx 4rpx;
+  border-top: 1rpx solid var(--line);
+  border-bottom: 1rpx solid var(--line);
+}
+.saving-row.readonly {
+  flex-direction: column; align-items: flex-start;
+  border-bottom: none; padding-bottom: 8rpx;
+}
+.sr-left { flex: 1; min-width: 0; padding-right: 20rpx; }
+/* 只读关联行：标题 + 不可改标签同一行，避免用户反复点账户名试图切换 */
+.sr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.sr-lock {
+  flex: none;
+  margin-left: 16rpx;
+  font-size: 20rpx;
+  color: #a8adb8;
+  background: #f2f3f5;
+  border-radius: 6rpx;
+  padding: 2rpx 10rpx;
+}
+.sr-title { font-size: 28rpx; color: var(--text); }
+.sr-sub {
+  display: block; font-size: 23rpx; color: var(--text-3); margin-top: 6rpx;
+}
+.sr-sub.err { color: var(--expense); }
+.sr-switch { transform: scale(.9); flex: none; }
+
+.saving-fold {
+  margin-top: 14rpx;
+  background: #fafbfc;
+  border: 1rpx solid var(--line);
+  border-radius: 18rpx;
+  overflow: hidden;
+}
+.sf-row {
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 76rpx; padding: 0 22rpx;
+  font-size: 25rpx;
+}
+.sf-row + .sf-row { border-top: 1rpx dashed var(--line); }
+.sf-an { color: #333; font-weight: 600; }
+.sf-tip { font-size: 22rpx; color: var(--text-3); }
+.sf-bal { color: var(--text-2); font-variant-numeric: tabular-nums; }
+.sf-row.over .sf-bal { color: var(--expense); font-weight: 600; }
+.sf-err { font-size: 22rpx; color: var(--expense); padding: 0 22rpx 12rpx; }

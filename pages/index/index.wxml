@@ -10,17 +10,41 @@
         <image wx:if="{{myAvatar}}" class="hero-av" src="{{myAvatar}}" mode="aspectFill" />
         <view wx:else class="hero-av">{{myInitial}}</view>
       </view>
-      <view class="hero-label">本月结余（元）</view>
-      <view class="hero-balance">{{balanceText}}</view>
-      <view class="hero-io">
-        <view class="hero-io-item">收入 <text class="hero-io-num">{{incomeText}}</text></view>
-        <view class="hero-io-item">支出 <text class="hero-io-num">{{expenseText}}</text></view>
+      <view class="hero-label-line">
+        <text class="hero-label">本月结余</text>
+        <text class="hero-badge {{balancePositive ? '' : 'neg'}}">{{balancePositive ? '盈余' : '超支'}}</text>
       </view>
-      <view class="mini-trend">
+      <view class="hero-balance">{{balanceText}}</view>
+      <!-- 收入 / 支出左右两栏 + 中间竖线：两个数分别对齐，比排成一行的「收入 X 支出 Y」更容易比大小 -->
+      <view class="hero-stats">
+        <view class="hs-col">
+          <text class="hs-k">收入</text>
+          <text class="hs-v">¥{{incomeText}}</text>
+        </view>
+        <view class="hs-div"></view>
+        <view class="hs-col right">
+          <text class="hs-k">支出</text>
+          <text class="hs-v">¥{{expenseText}}</text>
+        </view>
+      </view>
+      <view class="mini-trend" wx:if="{{miniOn || miniImg}}">
         <canvas wx:if="{{miniOn}}" type="2d" id="miniTrend" class="mini-canvas"></canvas>
-        <image wx:elif="{{miniImg}}" class="mini-canvas" src="{{miniImg}}" mode="scaleToFill"></image>
+        <image wx:else class="mini-canvas" src="{{miniImg}}" mode="scaleToFill"></image>
       </view>
       <view class="hero-go">查看统计 ›</view>
+    </view>
+
+    <!-- 家庭储蓄（第二本账）：只展示自己的余额与本月存取，不与收支比较 -->
+    <view class="saving-card" bindtap="goSaving">
+      <view class="sc-main">
+        <view class="sc-top"><text class="sc-ic">💰</text><text class="sc-name">家庭储蓄</text></view>
+        <view class="sc-bal">¥{{savingBalanceText}}</view>
+        <view class="sc-io">本月 <text class="inc">+{{savingMonthInText}}</text> · 取出 <text class="out">−{{savingMonthOutText}}</text></view>
+      </view>
+      <view class="sc-actions">
+        <view class="sc-btn" catchtap="openSavingDeposit">存入</view>
+        <view class="sc-btn ghost" catchtap="openSavingWithdraw">取出</view>
+      </view>
     </view>
 
     <!-- 今日 -->
@@ -56,6 +80,7 @@
             <view class="row between">
               <view class="tx-cat-wrap">
                 <text class="tx-cat">{{t.categoryName}}</text>
+                <text wx:if="{{t.savingLinked}}" class="tx-save-tag">储蓄</text>
                 <text wx:if="{{t.hasImage}}" class="tx-img-tag">有凭证</text>
               </view>
               <text class="tx-amt {{t.typeCls}}">{{t.sign}}¥{{t.amountText}}</text>

@@ -14,12 +14,17 @@ Page({
   data: {
     statusBarHeight: 20,
     familyName: '流年小账',
-    incomeText: '0.00', expenseText: '0.00', balanceText: '¥0.00',
+    incomeText: '0.00', expenseText: '0.00', balanceText: '¥0.00', balancePositive: true,
     monthLabel: '', myInitial: '家', myAvatar: '',
     todayCount: 0, todayExpenseText: '0.00', todayIncomeText: '0.00',
     recent: [],
     hasData: false,
     miniImg: '', miniOn: false,
+    // 储蓄卡（第二本账）
+    savingBalanceText: '0.00',
+    savingMonthInText: '0.00',
+    savingMonthOutText: '0.00',
+    savingAccountCount: 0,
     sheetVisible: false, sheetEditId: '', sheetPreset: null
   },
   onLoad() {
@@ -30,6 +35,29 @@ Page({
       this.getTabBar().setData({ selected: 0 })
     }
     this.load()
+    this.loadSaving()
+  },
+  loadSaving() {
+    const s = store.getSession()
+    if (!s || !s.familyId) return
+    api.getSavingOverview({}).then((d) => {
+      const o = d || {}
+      this.setData({
+        savingBalanceText: fmt.formatMoney(o.balance),
+        savingMonthInText: fmt.formatMoney(o.monthIn),
+        savingMonthOutText: fmt.formatMoney(o.monthOut),
+        savingAccountCount: o.accountCount || 0
+      })
+    }).catch(() => {})
+  },
+  goSaving() {
+    wx.navigateTo({ url: '/pages/saving/saving' })
+  },
+  openSavingDeposit() {
+    wx.navigateTo({ url: '/pages/saving/saving?deposit=1' })
+  },
+  openSavingWithdraw() {
+    wx.navigateTo({ url: '/pages/saving/saving?withdraw=1' })
   },
   load() {
     const s = store.getSession()
@@ -64,6 +92,8 @@ Page({
           const time = t.time || (t.createdAt ? t.createdAt.slice(11, 16) : '')
           t.sub = [t.note || '无备注', t.nickname, time].filter(Boolean).join(' · ')
           t.hasImage = Array.isArray(t.images) && t.images.length > 0
+          // 「储蓄」小标：从储蓄支付的账单 / 到账即存的收入
+          t.savingLinked = !!(t.savingLinked || t.savingRecordId)
 
         })
         const bal = inc - exp
@@ -85,6 +115,7 @@ Page({
         myInitial: (s.nickname || fam.name || '家').slice(0, 1),
         myAvatar: fmt.imgUrl(s.avatar),
         balanceText: (bal >= 0 ? '¥' : '-¥') + fmt.formatMoney(Math.abs(bal)),
+        balancePositive: bal >= 0,
         incomeText: fmt.formatMoney(stats.income),
         expenseText: fmt.formatMoney(stats.expense),
         todayCount: todayTx.length,
@@ -97,8 +128,13 @@ Page({
     }).catch((e) => wx.showToast({ title: e.message, icon: 'none' }))
   },
   drawMini(byDay) {
-    if (!byDay || !byDay.length) { this.setData({ miniImg: '', miniOn: false }); return }
-    const series = byDay.slice(-30).map(d => ({ value: d.expense || 0, label: d.date.slice(5) }))
+    const days = byDay || []
+    const series = days.slice(-30).map(d => ({ value: d.expense || 0, label: (d.date || '').slice(5) }))
+    // 没有任何支出/数据时整块隐藏：否则会留下一条空白的 72rpx 趋势带，Hero 里看着像没加载完
+    if (!series.length || !series.some((p) => p.value > 0)) {
+      this.setData({ miniImg: '', miniOn: false })
+      return
+    }
     // canvas 绘制后导出图片展示并移除节点，规避原生组件层浮到 tabBar 上的问题
     this.setData({ miniImg: '', miniOn: true }, () => {
       setTimeout(() => {
@@ -123,7 +159,7 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: false })
   },
   onSheetSaved() {
-    this.setData({ sheetVisible: false }); this.load()
+    this.setData({ sheetVisible: false }); this.load(); this.loadSaving()
     if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ hidden: false })
   }
 })

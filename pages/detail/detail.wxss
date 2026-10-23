@@ -30,6 +30,13 @@
   font-size: 20rpx; font-weight: 400; color: #8a8f99;
   background: #f2f3f5; border-radius: 8rpx; flex: none;
 }
+/* 「储蓄」小标：表示这笔账单是从家庭储蓄支付的（或收入同时存入） */
+.save-tag {
+  margin-left: 12rpx; padding: 0 10rpx;
+  height: 32rpx; line-height: 32rpx; box-sizing: border-box;
+  font-size: 20rpx; font-weight: 400; color: #0b7a44;
+  background: var(--brand-soft); border-radius: 8rpx; flex: none;
+}
 .note { font-size: 24rpx; color: var(--text-3); margin-top: 6rpx; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .amt { font-size: 32rpx; font-weight: 600; white-space: nowrap; flex: none; }
 .amt.expense { color: var(--expense); }

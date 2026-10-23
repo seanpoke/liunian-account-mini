@@ -28,6 +28,7 @@
             <view class="line1">
               <view class="tcat-wrap">
                 <text class="tcat">{{t.categoryName}}</text>
+                <text wx:if="{{t.savingLinked}}" class="save-tag">储蓄</text>
                 <text wx:if="{{t.hasImage}}" class="img-tag">有凭证</text>
               </view>
               <text class="amt {{t.typeCls}}">{{t.sign}}¥{{t.amountText}}</text>

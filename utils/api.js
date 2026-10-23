@@ -193,6 +193,27 @@ const api = {
   getFamilies: () => request('GET', '/families'),
   dissolveFamily: (familyId) => request('POST', '/family/' + familyId + '/dissolve'),
   getTransactionsByDay: (query) => request('GET', '/transactions/by-day', { query: Object.assign({ familyId: currentFamilyId() }, query) }),
+
+  // ---------- 储蓄模块（第二本账，与收支互不校验） ----------
+  // 汇总：余额 + 本月存取 + 账户列表（传 accountId 即单账户视角）
+  getSavingOverview: (query) => request('GET', '/saving/overview', { query: Object.assign({ familyId: currentFamilyId() }, query) }),
+  getSavingRecords: (query) => request('GET', '/saving/records', { query: Object.assign({ familyId: currentFamilyId() }, query) }),
+  getSavingRecord: (id) => request('GET', '/saving/record/' + id),
+  // 存入 / 取出（amount 为分；取出超出账户余额由服务端硬阻断）
+  savingDeposit: (payload) => request('POST', '/saving/deposit', { data: Object.assign({ familyId: currentFamilyId() }, payload) }),
+  savingWithdraw: (payload) => request('POST', '/saving/withdraw', { data: Object.assign({ familyId: currentFamilyId() }, payload) }),
+  // 更新余额：先 preview 拿账面/差额，再 adjust 提交实际余额
+  savingAdjustPreview: (query) => request('GET', '/saving/adjust/preview', { query: Object.assign({ familyId: currentFamilyId() }, query) }),
+  savingAdjust: (payload) => request('POST', '/saving/adjust', { data: Object.assign({ familyId: currentFamilyId() }, payload) }),
+  savingTransfer: (payload) => request('POST', '/saving/transfer', { data: Object.assign({ familyId: currentFamilyId() }, payload) }),
+  // 账户：列表 / 新建 / 修改（仅自定义可改）/ 删除
+  getSavingAccounts: (familyId) => request('GET', '/saving/accounts', { query: { familyId: familyId || currentFamilyId() } }),
+  addSavingAccount: (payload) => request('POST', '/saving/account', { data: Object.assign({ familyId: currentFamilyId() }, payload) }),
+  updateSavingAccount: (id, payload) => request('PUT', '/saving/account/' + id, { data: payload }),
+  deleteSavingAccount: (id) => request('DELETE', '/saving/account/' + id),
+  // 流水：编辑 / 删除（组合记录会由服务端成对同步）
+  updateSavingRecord: (id, payload) => request('PUT', '/saving/record/' + id, { data: payload }),
+  deleteSavingRecord: (id) => request('DELETE', '/saving/record/' + id),
   getPrivacy: () => request('GET', '/user/privacy'),
   submitPrivacy: (agreed) => request('POST', '/user/privacy', { data: { agreed } })
 }

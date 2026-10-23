@@ -19,6 +19,39 @@
         <input class="amount-input" type="digit" placeholder="0.00" placeholder-class="amount-ph" value="{{amountText}}" bindinput="onAmount" bindfocus="onAmountFocus" adjust-position="{{false}}" />
       </view>
 
+      <!-- 储蓄联动（第二本账）：支出从储蓄支付 / 收入同时存入；夹在金额与信息卡之间 -->
+      <block wx:if="{{!editId}}">
+        <view class="saving-row">
+          <view class="sr-left">
+            <text class="sr-title">{{type === 'income' ? '同时存入家庭储蓄' : '从家庭储蓄支出'}}</text>
+            <!-- 只有开启开关后才展示账户与错误；关着时保持干净的灰色一行 -->
+            <text class="sr-sub" wx:if="{{savingOn && savingAcc}}">{{savingAcc.icon}} {{savingAcc.name}}</text>
+          </view>
+          <switch class="sr-switch" checked="{{savingOn}}" color="#07C160" bindchange="onSavingToggle" />
+        </view>
+        <view class="saving-fold" wx:if="{{savingOn && savingAcc}}">
+          <view class="sf-row" bindtap="openSavingPick">
+            <text class="sf-an">{{savingAcc.icon}} {{savingAcc.name}} ›</text>
+            <text class="sf-tip">切换账户</text>
+          </view>
+          <view class="sf-row {{savingOver ? 'over' : ''}}">
+            <text class="sf-bal">余额 ¥{{savingAccBalText}} → {{savingOver ? '不足' : '剩余'}} ¥{{savingLeftText}}</text>
+          </view>
+          <view class="sf-err" wx:if="{{savingOver}}">{{savingErr}}</view>
+        </view>
+      </block>
+      <!-- 编辑已关联储蓄的记录：这笔支出的钱是从储蓄账户里取的，账户与关联都只读 -->
+      <view class="saving-row readonly" wx:if="{{editId && savingLinked}}">
+        <view class="sr-head">
+          <text class="sr-title" wx:if="{{type === 'expense'}}">从「{{savingLinkedName}}」储蓄里支付</text>
+          <text class="sr-title" wx:else>这笔钱存进了「{{savingLinkedName}}」</text>
+          <text class="sr-lock">账户不可改</text>
+        </view>
+        <text class="sr-sub">{{type === 'expense' ? '这笔支出和一笔储蓄取出绑定：改金额，取出金额同步改' : '这笔收入和一笔储蓄存入绑定：改金额，存入金额同步改'}}</text>
+        <text class="sr-sub" wx:if="{{type === 'expense' && savingCapText}}">最多能改成 ¥{{savingCapText}}（账户现有 ¥{{savingAccBalText}} + 本笔取出 ¥{{savingOriginalText}}）</text>
+        <text class="sr-sub">{{type === 'expense' ? '想换储蓄账户或改成现金支付？删掉这笔，重新记一次' : '想换储蓄账户或不再存入？删掉这笔，重新记一次'}}</text>
+      </view>
+
       <view class="info-card">
         <picker mode="date" value="{{date}}" bindchange="onDate">
           <view class="info-row">

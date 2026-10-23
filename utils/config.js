@@ -9,10 +9,10 @@
 //   - 生产环境请把 DEFAULT_API_BASE 改为已备案域名（如 https://api.<你的域名>/api）。
 
 // 当前开发环境（本地测试）
-const DEFAULT_API_BASE = 'http://10.8.2.83:8445/api'
+// const DEFAULT_API_BASE = 'http://10.8.2.83:8445/api'
 
 // 当前开发环境（预生产测试）
-// const DEFAULT_API_BASE = 'https://dev-account.sean.ltd/api'
+const DEFAULT_API_BASE = 'https://dev-account.sean.ltd/api'
 
 // 生产环境
 // const DEFAULT_API_BASE = 'https://account.ltd/api'
