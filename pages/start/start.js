@@ -33,7 +33,8 @@ Page({
   },
   onLoad() {
     const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
-    this.setData({ statusBarHeight: info.safeArea ? info.safeArea.top : (info.statusBarHeight || 20) })
+    // statusBarHeight 各机型都可靠；safeArea.top 在部分机型会返回 0，只作兜底
+    this.setData({ statusBarHeight: Number(info.statusBarHeight) || Number(info.safeArea && info.safeArea.top) || 20 })
     if (!store.isPrivacyAgreed()) {
       this.setData({ privacy: true })
     } else {

@@ -7,7 +7,8 @@ const recordFlow = require('../../utils/record-flow')
 
 function statusBar() {
   const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
-  return info.safeArea ? info.safeArea.top : (info.statusBarHeight || 20)
+  // statusBarHeight 各机型都可靠；safeArea.top 在部分机型会返回 0，只作兜底
+  return Number(info.statusBarHeight) || Number(info.safeArea && info.safeArea.top) || 20
 }
 
 Page({

@@ -13,16 +13,19 @@
   flex: none;
 }
 
+/* 高度与状态栏内边距由 navigation-bar.js 用内联样式统一注入（statusBarHeight），
+   这里只给兜底值：小程序 webview 里 env(safe-area-inset-top) 在部分安卓机上恒为 0，
+   不能作为唯一来源。 */
 .weui-navigation-bar__inner {
   position: relative;
   top: 0;
   left: 0;
-  height: calc(var(--height) + env(safe-area-inset-top));
+  height: var(--height);
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding-top: env(safe-area-inset-top);
+  padding-top: 0;
   width: 100%;
   box-sizing: border-box;
 }
@@ -68,6 +71,11 @@
   font-weight: bold;
   flex: 1;
   height: 100%;
+  /* 标题绝不换行：左右留白算错时宁可裁切/省略，也不要竖排 */
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .weui-navigation-bar__loading {

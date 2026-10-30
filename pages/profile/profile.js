@@ -2,7 +2,7 @@
 const store = require('../../utils/store')
 const api = require('../../utils/api')
 const fmt = require('../../utils/format')
-const { chooseAvatarImage } = require('../../utils/upload')
+const { chooseAvatarForCrop } = require('../../utils/upload')
 
 Page({
   data: { initial: '', bg: '', avatarUrl: '', nickname: '', roleText: '', nameEditShow: false, nameEditValue: '' },
@@ -32,10 +32,10 @@ Page({
       })
     }).catch(() => {})
   },
-  // 头像：选图 → 压到 200px → POST /upload → PATCH /user/me
+  // 头像：选图 → 圆形裁剪（拖动/双指缩放）→ POST /upload → PATCH /user/me
   changeAvatar() {
     const s = store.getSession()
-    chooseAvatarImage((path) => {
+    chooseAvatarForCrop((path) => {
       if (!path) { wx.showToast({ title: '头像处理失败，请重试', icon: 'none' }); return }
       let uploaded = ''
       wx.showLoading({ title: '上传中' })

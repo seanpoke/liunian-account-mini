@@ -1,7 +1,7 @@
 <!-- pages/index/index.wxml —— 对照 doc/家庭记账小程序原型.html -->
 <view class="page">
   <navigation-bar title="{{familyName}}" back="{{false}}" color="black" background="#ffffff"></navigation-bar>
-  <view class="page-body pad" style="padding-top: 8rpx;">
+  <view class="page-body pad">
 
     <!-- 本月概览：绿色 Hero -->
     <view class="hero" bindtap="goStats">

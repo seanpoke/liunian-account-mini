@@ -175,8 +175,30 @@ function chooseAvatarImage(cb) {
   })
 }
 
+// 选择头像 → 进入圆形裁剪页（拖动/双指缩放）→ 回调裁剪后的临时路径。
+// 这里不做压缩：裁剪页会按圆形可视区域重绘为 360×360 的 JPEG，体积已足够小。
+// 用户在原图选择或裁剪页取消时都不回调 cb。
+function chooseAvatarForCrop(cb) {
+  wx.chooseMedia({
+    count: 1,
+    mediaType: ['image'],
+    sizeType: ['compressed'],
+    sourceType: ['album', 'camera'],
+    success(res) {
+      const f = (res.tempFiles || [])[0]
+      if (!f) return
+      wx.navigateTo({
+        url: '/pages/avatar-crop/avatar-crop?src=' + encodeURIComponent(f.tempFilePath),
+        events: {
+          done: (path) => { if (path && cb) cb(path) }
+        }
+      })
+    }
+  })
+}
+
 module.exports = {
   IMAGE_MAX_BYTES, IMAGE_SOFT_BYTES, IMAGE_MAX_COUNT, AVATAR_MAX_BYTES,
   FAIL_COMPRESS, FAIL_TOO_BIG,
-  chooseImages, compressToLimit, chooseAvatarImage, compressAvatar
+  chooseImages, compressToLimit, chooseAvatarImage, compressAvatar, chooseAvatarForCrop
 }

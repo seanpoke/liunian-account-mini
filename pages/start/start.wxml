@@ -1,6 +1,6 @@
 <!-- pages/start/start.wxml —— 严格对照 doc/家庭记账小程序原型.html 首启页 -->
 <view class="page start-page">
-  <view class="start-hero" style="padding-top: {{statusBarHeight}}rpx;">
+  <view class="start-hero" style="padding-top: {{statusBarHeight}}px;">
     <view class="start-logo">账</view>
     <view class="start-title">家庭记账本</view>
     <view class="start-sub">和家人们一起，把每天的收支记清楚，随时查看家庭账本。</view>

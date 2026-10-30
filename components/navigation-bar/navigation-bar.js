@@ -59,23 +59,61 @@ Component({
   },
   lifetimes: {
     attached() {
-      const rect = wx.getMenuButtonBoundingClientRect()
-      const platform = (wx.getDeviceInfo() || wx.getSystemInfoSync()).platform
-      const isAndroid = platform === 'android'
-      const isDevtools = platform === 'devtools'
-      const { windowWidth, safeArea: { top = 0, bottom = 0 } = {} } = wx.getWindowInfo() || wx.getSystemInfoSync()
-      this.setData({
-        ios: !isAndroid,
-        innerPaddingRight: `padding-right: ${windowWidth - rect.left}px`,
-        leftWidth: `width: ${windowWidth - rect.left}px`,
-        safeAreaTop: isDevtools || isAndroid ? `height: calc(var(--height) + ${top}px); padding-top: ${top}px` : ``
-      })
+      this._syncTop()
+      // 冷启动极早期（安卓扫码进入/从后台唤起时常见）statusBarHeight 可能返回 0，
+      // 200ms 后再校准一次，避免导航条时高时矮、偶发压住胶囊。
+      this._topTimer = setTimeout(() => this._syncTop(), 200)
     },
+    detached() {
+      if (this._topTimer) { clearTimeout(this._topTimer); this._topTimer = null }
+    },
+  },
+  pageLifetimes: {
+    // 页面每次重新显示（切 tab 回来、后台恢复）都校准一次
+    show() { this._syncTop() },
   },
   /**
    * 组件的方法列表
    */
   methods: {
+    // 计算并注入导航条高度。任何一步取不到值都不能退化成 0（否则导航条只剩 44/48px）：
+    // 1) statusBarHeight  2) 胶囊顶反推（胶囊顶 ≈ 状态栏 + 6px）  3) 24 兜底
+    _syncTop() {
+      const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+      const device = wx.getDeviceInfo ? wx.getDeviceInfo()
+        : (wx.getSystemInfoSync ? wx.getSystemInfoSync() : win)
+      const rect = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : null
+      // 胶囊信息异常时不要拿 0 去算宽度，否则右侧留白会占满整屏、标题被挤掉
+      const hasCapsule = !!(rect && rect.left > 0 && rect.top > 0 && rect.width > 0)
+
+      let statusBarHeight = Number(win.statusBarHeight) || 0
+      if (!(statusBarHeight > 0) && hasCapsule) {
+        statusBarHeight = Math.max(0, Math.round(rect.top - 6))
+      }
+      if (!(statusBarHeight > 0)) {
+        statusBarHeight = Number(win.safeArea && win.safeArea.top) || 0
+      }
+      if (!(statusBarHeight > 0)) statusBarHeight = 24
+
+      // 右侧留白（= 屏幕宽 - 胶囊左边界）用 CSS 的 100vw 计算，不依赖 JS 的 windowWidth：
+      // getWindowInfo() 在冷启动早期可能给出异常宽度，一旦偏大会把中间标题挤成竖排。
+      const winWidth = Number(win.windowWidth) || 0
+      const capsuleOk = hasCapsule && (!winWidth || rect.left < winWidth * 0.9)
+      const padStyle = capsuleOk ? `calc(100vw - ${rect.left}px)` : ''
+
+      // 取值没变化就不重复 setData（pageLifetimes.show 会频繁触发）
+      const key = [statusBarHeight, padStyle, capsuleOk ? rect.width : 0, device.platform].join('/')
+      if (key === this._topKey) return
+      this._topKey = key
+
+      this.setData({
+        ios: device.platform !== 'android',
+        innerPaddingRight: padStyle ? `padding-right: ${padStyle}` : '',
+        leftWidth: padStyle ? `width: ${padStyle}` : 'width: auto',
+        // 所有平台统一用内联样式补状态栏高度，不再依赖 env(safe-area-inset-top)
+        safeAreaTop: `height: calc(var(--height) + ${statusBarHeight}px); padding-top: ${statusBarHeight}px`
+      })
+    },
     _showChange(show) {
       const animated = this.data.animated
       let displayStyle = ''

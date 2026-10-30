@@ -1,0 +1,22 @@
+<!-- pages/avatar-crop/avatar-crop.wxml —— 圆形头像裁剪：拖动 / 双指缩放 -->
+<view class="ac-page"
+  bindtouchstart="onTouchStart" bindtouchmove="onTouchMove"
+  bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd">
+
+  <!-- 裁剪圆：overflow:hidden + 圆角，图片只在圆内可见 -->
+  <view class="ac-stage"
+    style="width:{{stage}}px;height:{{stage}}px;top:{{stageTop}}px;margin-left:{{stageOffset}}px;">
+    <image wx:if="{{src}}" class="ac-img" src="{{src}}" mode="scaleToFill"
+      style="width:{{dispW}}px;height:{{dispH}}px;left:{{imgLeft}}px;top:{{imgTop}}px;" />
+  </view>
+  <!-- 白色描边（不挡手势） -->
+  <view class="ac-ring"
+    style="width:{{stage}}px;height:{{stage}}px;top:{{stageTop}}px;margin-left:{{stageOffset}}px;"></view>
+
+  <view class="ac-tip" style="top:{{tipTop}}px;">双指缩放 · 拖动调整位置</view>
+
+  <view class="ac-bar">
+    <view class="ac-btn cancel" bindtap="cancel">取消</view>
+    <view class="ac-btn ok {{busy ? 'disabled' : ''}}" bindtap="confirm">{{busy ? '处理中…' : '使用'}}</view>
+  </view>
+</view>

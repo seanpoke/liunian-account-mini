@@ -9,7 +9,8 @@ const RING_PALETTE = ['#3a6df0', '#ff7a45', '#18a058', '#f0a020', '#9254de', '#3
 const MEMBER_PALETTE = ['#07C160', '#4C8DFF', '#FFB020', '#9254DE', '#36CFC9', '#FF7A45', '#EB2F96', '#13C2C2']
 function statusBar() {
   const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
-  return info.safeArea ? info.safeArea.top : (info.statusBarHeight || 20)
+  // statusBarHeight 各机型都可靠；safeArea.top 在部分机型会返回 0，只作兜底
+  return Number(info.statusBarHeight) || Number(info.safeArea && info.safeArea.top) || 20
 }
 
 Page({

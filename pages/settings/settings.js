@@ -4,7 +4,7 @@ const store = require('../../utils/store')
 const flow = require('../../utils/flow')
 const fmt = require('../../utils/format')
 const recordFlow = require('../../utils/record-flow')
-const { chooseAvatarImage } = require('../../utils/upload')
+const { chooseAvatarForCrop } = require('../../utils/upload')
 
 const SHEET_EMPTY = { memberId: '', openid: '', nickname: '', avatarUrl: '', initial: '', bg: '', role: '', roleText: '', joinText: '', monthCount: 0, totalCount: 0 }
 
@@ -188,7 +188,7 @@ Page({
   _pickFamilyAvatar() {
     const s = store.getSession()
     if (!s || !s.familyId) return
-    chooseAvatarImage((path) => {
+    chooseAvatarForCrop((path) => {
       if (!path) { wx.showToast({ title: '头像处理失败，请重试', icon: 'none' }); return }
       wx.showLoading({ title: '上传中' })
       api.upload(path, s.familyId)
@@ -251,7 +251,7 @@ Page({
   _changeMyAvatar() {
     const s = store.getSession()
     if (!s) return
-    chooseAvatarImage((path) => {
+    chooseAvatarForCrop((path) => {
       if (!path) { wx.showToast({ title: '头像处理失败，请重试', icon: 'none' }); return }
       let uploaded = ''
       wx.showLoading({ title: '上传中' })

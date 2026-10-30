@@ -39,7 +39,8 @@ Page({
   },
   onLoad(query) {
     const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
-    const statusBarHeight = info.safeArea ? info.safeArea.top : (info.statusBarHeight || 20)
+    // statusBarHeight 各机型都可靠；safeArea.top 在部分机型会返回 0，只作兜底
+    const statusBarHeight = Number(info.statusBarHeight) || Number(info.safeArea && info.safeArea.top) || 20
     const type = query && query.type === 'income' ? 'income' : 'expense'
     const activeId = query && query.selectedId !== undefined ? query.selectedId : ''
     // 导航条高度与微信右上角胶囊保持一致（胶囊上下留白对称），「取消」因此放在左侧避开胶囊
